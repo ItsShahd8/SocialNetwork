@@ -5,13 +5,27 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	handlers "social/pkg/api"
+
+	"social/pkg/api"
 	"social/pkg/db/sqlite"
 
 	"github.com/gorilla/sessions"
 )
 
-var store = sessions.NewCookieStore([]byte("your-secret-key")) // replace with secure random key
+var store *sessions.CookieStore
+
+func init() {
+	secret := os.Getenv("SESSION_KEY")
+	if secret == "" {
+		secret = "dev-secret-key"
+	}
+	store = sessions.NewCookieStore([]byte(secret))
+	store.Options = &sessions.Options{
+		Path:     "/",
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+	}
+}
 
 func main() {
 	dbPath := "data/socialnetwork.db"
@@ -20,28 +34,19 @@ func main() {
 		log.Fatal("failed to create db folder:", err)
 	}
 
-	db, err := sqlite.ConnectAndMigrate(dbPath, "pkg/db/migrations/sqlite")
+	db, err := sqlite.ConnectAndMigrate(dbPath, "pkg/db/migrations/sqlite") // ✅ No file://
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer db.Close()
 
-	http.HandleFunc("/api/register", handlers.RegisterHandler(db))
-	http.HandleFunc("/api/login", handlers.LoginHandler(db, store)) // if session store is setup
-	log.Println("Backend is running...")
-	log.Println("http://localhost:8080/")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	http.HandleFunc("/register", api.RegisterHandler(db))
+	http.HandleFunc("/login", api.LoginHandler(db, store))
+	http.HandleFunc("/logout", api.LogoutHandler(store))
 
-}
-
-func IsAuthenticated(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		session, _ := store.Get(r, "session")
-		userID, ok := session.Values["user_id"]
-		if !ok || userID == "" {
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
-			return
-		}
-		next.ServeHTTP(w, r)
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("👋 Backend is running. Use /api/* endpoints."))
 	})
+	log.Println("✅ Backend is running on http://localhost:8080/")
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }
