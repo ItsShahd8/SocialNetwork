@@ -22,8 +22,11 @@ func ConnectAndMigrate(dbPath, migrationsPath string) (*sql.DB, error) {
 
 	m, err := migrate.New(sourceURL, dbURL)
 	if err != nil {
+		log.Printf("sourceURL = %s", sourceURL)
+		log.Printf("dbURL = %s", dbURL)
 		return nil, fmt.Errorf("migration init error: %v", err)
 	}
+
 	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
 		return nil, fmt.Errorf("migration failed: %v", err)
 	}

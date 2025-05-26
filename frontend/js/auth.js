@@ -1,44 +1,85 @@
-// Registration
+const BASE_URL = "http://localhost:8080"; // Go backend URL
+
+// REGISTER
 document.getElementById("register-form")?.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const res = await fetch("/api/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            email: document.getElementById("reg-email").value,
-            username: document.getElementById("reg-username").value,
-            password: document.getElementById("reg-password").value,
-            first_name: document.getElementById("reg-fname").value,
-            last_name: document.getElementById("reg-lname").value,
-            dob: document.getElementById("reg-dob").value,
-        }),
-    });
-    const data = await res.json();
-    alert(data.message || "Registered");
+
+    const payload = {
+        email: document.getElementById("reg-email").value,
+        password: document.getElementById("reg-password").value,
+        username: document.getElementById("reg-username").value,
+        first_name: document.getElementById("reg-fname").value,
+        last_name: document.getElementById("reg-lname").value,
+        dob: document.getElementById("reg-dob").value,
+        avatar_url: document.getElementById("reg-avatar")?.value || "",
+        nickname: document.getElementById("reg-nickname")?.value || "",
+        about_me: document.getElementById("reg-about")?.value || "",
+    };
+
+    try {
+        const res = await fetch(`${BASE_URL}/api/register`, {
+            method: "POST",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+        });
+
+        const data = await res.json();
+       if (res.ok) {
+  window.location.href = "/login.html";
+} else {
+  alert(data.message || "Registration failed.");
+  console.error("❌ Registration failed:", data);
+}
+    } catch (err) {
+        alert("Registration failed.");
+        console.error(err);
+    }
 });
 
-// Login
+// LOGIN
 document.getElementById("login-form")?.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const res = await fetch("/api/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-            emailOruser: document.getElementById("login-emailOruser").value,
-            password: document.getElementById("login-password").value,
-        }),
-    });
-    const data = await res.json();
-    alert(data.message || "Logged in");
+
+  const identifier= document.getElementById("login-identifier").value;
+  const password= document.getElementById("login-password").value;
+
+    try {
+        const res = await fetch(`${BASE_URL}/api/login`, {
+            method: "POST",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ identifier, password }),
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+            // alert("Login successful!");
+            console.log(res)
+            window.location.href = "/home.html";
+        } else {
+            alert(data.message || "Login failed.");
+        }
+    } catch (err) {
+        alert("Login error.");
+        console.error(err);
+    }
 });
 
-// Logout
+// LOGOUT
 document.getElementById("logout-btn")?.addEventListener("click", async () => {
-    const res = await fetch("/api/logout", {
-        method: "POST",
-        credentials: "include",
-    });
-    const data = await res.json();
-    alert(data.message || "Logged out");
+    try {
+        const res = await fetch(`${BASE_URL}/api/logout`, {
+            method: "POST",
+            credentials: "include",
+        });
+
+        const data = await res.json();
+        // alert(data.message || "Logged out");
+            console.log(res)
+        window.location.href = "/index.html";
+    } catch (err) {
+        alert("Logout error.");
+        console.error(err);
+    }
 });

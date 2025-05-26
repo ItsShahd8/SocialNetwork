@@ -40,9 +40,10 @@ func main() {
 	}
 	defer db.Close()
 
-	http.HandleFunc("/api/register", api.RegisterHandler(db))
-	http.HandleFunc("/api/login", api.LoginHandler(db, store))
-	http.HandleFunc("/api/logout", api.LogoutHandler(store))
+	http.HandleFunc("/api/register", api.WithCORS(api.RegisterHandler(db)))
+	http.HandleFunc("/api/login", api.WithCORS(api.LoginHandler(db, store)))
+	http.HandleFunc("/api/logout", api.WithCORS(api.LogoutHandler(store)))
+	http.HandleFunc("/api/profile/me", api.WithCORS(api.GetMyProfileHandler(db, store)))
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("👋 Backend is running. Use /api/* endpoints."))
