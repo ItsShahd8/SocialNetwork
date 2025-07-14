@@ -6,7 +6,7 @@ WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
 
-# Copy everything including migration files
+# Copy everything inside backend, including migrations under pkg/
 COPY . .
 
 RUN go build -o main server.go
@@ -16,10 +16,10 @@ FROM alpine:latest
 
 WORKDIR /app
 
-# Copy built binary
+# Copy binary
 COPY --from=builder /app/main .
 
-# Copy migration files and source structure
+# Copy everything needed including pkg (which has migrations)
 COPY --from=builder /app/pkg ./pkg
 
 EXPOSE 8080

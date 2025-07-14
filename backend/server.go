@@ -1,31 +1,13 @@
 package main
 
 import (
+	"fmt"
 	"log"
-	"net/http"
 	"os"
 	"path/filepath"
-
-	"social/pkg/api"
-	"social/pkg/db/sqlite"
-
-	"github.com/gorilla/sessions"
+	"socialnetwork/pkg/db/sqlite"
+	web "socialnetwork/web"
 )
-
-var store *sessions.CookieStore
-
-func init() {
-	secret := os.Getenv("SESSION_KEY")
-	if secret == "" {
-		secret = "dev-secret-key"
-	}
-	store = sessions.NewCookieStore([]byte(secret))
-	store.Options = &sessions.Options{
-		Path:     "/",
-		HttpOnly: true,
-		SameSite: http.SameSiteLaxMode,
-	}
-}
 
 func main() {
 	dbPath := "data/socialnetwork.db"
@@ -34,20 +16,13 @@ func main() {
 		log.Fatal("failed to create db folder:", err)
 	}
 
-	db, err := sqlite.ConnectAndMigrate(dbPath, "pkg/db/migrations/sqlite") // ✅ No file://
+	db, err := sqlite.ConnectAndMigrate(dbPath, "pkg/db/migrations/sqlite")
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer db.Close()
 
-	http.HandleFunc("/api/register", api.WithCORS(api.RegisterHandler(db)))
-	http.HandleFunc("/api/login", api.WithCORS(api.LoginHandler(db, store)))
-	http.HandleFunc("/api/logout", api.WithCORS(api.LogoutHandler(store)))
-	http.HandleFunc("/api/profile/me", api.WithCORS(api.GetMyProfileHandler(db, store)))
+	fmt.Println("✅ Database tables checked and initialized.")
+	web.ConnectWeb(db)
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("👋 Backend is running. Use /api/* endpoints."))
-	})
-	log.Println("✅ Backend is running on http://localhost:8080/")
-	log.Fatal(http.ListenAndServe(":8080", nil))
 }

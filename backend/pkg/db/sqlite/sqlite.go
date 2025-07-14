@@ -18,7 +18,7 @@ func ConnectAndMigrate(dbPath, migrationsPath string) (*sql.DB, error) {
 	}
 
 	dbURL := fmt.Sprintf("sqlite://%s", dbPath)
-	sourceURL := fmt.Sprintf("file://%s", migrationsPath) // ✅ adds file:// only once
+	sourceURL := fmt.Sprintf("file://%s", migrationsPath)
 
 	m, err := migrate.New(sourceURL, dbURL)
 	if err != nil {

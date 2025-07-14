@@ -1,0 +1,82 @@
+import Head from 'next/head';
+import { useEffect } from 'react';
+
+export default function CreatePost() {
+
+  return (
+    <>
+      <Head>
+        <title>Welcome Page</title>
+        <meta charSet="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="stylesheet" href="/css/style.css" />
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+        <script src="/js/session.js" defer></script>
+        <script src="/js/socket.js" defer></script>
+        <script src="/js/createPost.js" defer></script>
+      </Head>
+      <section id="show" hidden>
+
+        <div className="sidebar-post right-sidebar">
+          <br />
+          <button id="logoutButton" className="button-side" >Logout</button>
+          <br />
+          <button onClick={() => window.location.href = '/'} className="button-side">Main</button><br />
+          <br />
+          <ul id="userList"></ul>
+        </div>
+
+        <section className="chat-main" id="chat-main" hidden>
+
+          <div className="chat-header">
+            <h3 id="chatWithLabel">Chat</h3>
+            <button id="closeChatButton" className="close-chat-button">x</button>
+          </div>
+
+          <div id="chatWindow" className="chat-window">
+          </div>
+
+          <form id="chatForm">
+            <input type="text" id="chatInput" placeholder="Type a message..." required />
+            <button type="submit" className="button-main">Send</button>
+          </form>
+
+        </section>
+      </section>
+
+      <section id="createPostSection">
+        <button className="return-button" onClick={() => window.history.back()}>Return</button>
+        <div className="container-create">
+          <h1>Create a New Post</h1>
+
+          <form id="createPostForm" method="POST">
+            <label htmlFor="title">Title:</label>
+            <input type="text" id="title" name="title" required />
+
+            <label htmlFor="content">Content:</label>
+            <textarea id="content" name="content" rows="6" required></textarea>
+
+            <br /><br />
+            <label>Category:</label><br />
+
+            <label>
+              <input type="checkbox" name="category" value="Nature" /> Nature
+            </label>
+            <label>
+              <input type="checkbox" name="category" value="Food" /> Food
+            </label>
+            <label>
+              <input type="checkbox" name="category" value="Sport" /> Sport
+            </label>
+            <label>
+              <input type="checkbox" name="category" value="Travel" /> Travel
+            </label>
+
+            <br /><br />
+            <input type="submit" value="Post it" className="button-create" />
+          </form>
+        </div>
+      </section>
+    </>
+  );
+}
