@@ -16,9 +16,6 @@ export default function MainPage() {
         <div className="sidebar-post right-sidebar">
           <br />
           <button id="logoutButton" className="button-side" >Logout</button>
-          <br />
-          <button onClick={() => window.location.href = '/'} className="button-side">Main</button><br />
-          <br />
           <ul id="userList"></ul>
         </div>
 

@@ -32,7 +32,7 @@ function checkSession() {
                 }
                 if(show) show.hidden = false;
                 if (postsButton) postsButton.style.display = "inline-block";
-                if (logoutButton) {logoutButton.style.display = "inline-block";
+                if (logoutButton) {
                     logoutButton.addEventListener('click', logout);
                 }
 

@@ -12,11 +12,13 @@ export default function AboutUs() {
         <script src="/js/session.js" defer></script>
         <script src="/js/chat.js" defer></script>
       </Head>
-      <section id="show" hidden>
+      <section id="show" >
 
         <div className="sidebar-post right-sidebar">
           <br />
           <button id="logoutButton" className="button-side" >Logout</button>
+          <br />
+          <button className="button-side" onClick={() => window.history.back()}>Return</button>
           <br />
           <button onClick={() => window.location.href = '/'} className="button-side">Main</button><br />
           <br />
@@ -59,7 +61,6 @@ export default function AboutUs() {
             <h4>Containerization</h4>
             <p>We utilize <strong>Docker</strong> to manage our application environment.</p>
           </div>
-          <button className="return-button" onClick={() => window.location.href = '/'}>Return</button>
         </div>
       </section>
     </>

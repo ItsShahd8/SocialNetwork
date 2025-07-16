@@ -162,8 +162,9 @@ function loadMyPosts(myUsername) {
         })
         .then(profile => {
             document.getElementById('profileBio').innerHTML = profile.bio || 'No bio available.';
-            document.getElementById('avatar').value = profile.avatar || '/img/images.png';
+            document.getElementById('avatar').src = profile.avatar || '/img/images.png';
             console.log("Profile Bio: ", profile.bio);
+            console.log("Avatar URL: ", profile.avatar);
         })
         .catch(error => {
             console.error('Error fetching user bio:', error);

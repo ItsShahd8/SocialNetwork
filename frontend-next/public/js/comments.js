@@ -44,7 +44,7 @@ function loadCommentsForPost() {
             const comments = parsedResponse.comments;
 
             commentsSection.innerHTML = `
-        <button class="return-button" onclick="window.history.back();">Return</button>
+
         <div class="comment-post">
             <h2>${post.title}</h2>
             <p>${post.content}</p>

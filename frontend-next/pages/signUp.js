@@ -40,8 +40,14 @@ export default function SignUp() {
             <input type="submit" value="Submit" />
           </form>
           <p>Already have an account?</p>
-          <br/>
           <button className="return-button" onClick={() => window.location.href='/login'}>Login</button>
+          <br/>
+          <br/>
+          <br/>
+          <br/>
+          <br/>
+          <br/>
+          <br/>
           <br/>
         </div>
         <button className="return-button" onClick={() => window.location.href='/'}>Return</button>

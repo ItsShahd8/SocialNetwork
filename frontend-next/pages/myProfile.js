@@ -23,6 +23,9 @@ export default function MyProfile() {
 
         <div className="sidebar-post right-sidebar">
           <button id="logoutButton" className="button-side" >Logout</button>
+          <br />
+          <button className="button-side" onClick={() => window.location.href = '/posts'}>Return</button>
+          <br />
           <button onClick={() => window.location.href = '/'} className="button-side">Main</button><br />
           <ul id="userList"></ul>
         </div>
@@ -48,9 +51,9 @@ export default function MyProfile() {
       <section id="profilePageSection">
         <div className="container-main">
           <div className="profile-top">
-           <img
+            <img
               src="/img/images.png"
-              alt="Avatar"
+              alt="/img/images.png"
               className="avatar-preview"
               id='avatar'
             />
@@ -76,7 +79,6 @@ export default function MyProfile() {
             </div>
           </section>
         </div>
-        <button className="return-button" onClick={() => window.location.href = '/posts'}>Return</button>
       </section>
     </>
   );

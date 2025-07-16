@@ -1,5 +1,5 @@
 import Head from 'next/head';
-
+import { useRouter } from 'next/navigation';
 export default function Comments() {
   return (
     <>
@@ -13,11 +13,13 @@ export default function Comments() {
         <script src="/js/session.js" defer></script>
         <script src="/js/chat.js" defer></script>
       </Head>
-      <section id="show" hidden>
+      <section id="show">
 
         <div className="sidebar-post right-sidebar">
           <br />
-          <button id="logoutButton" className="button-side">Logout</button>
+          <button id="logoutButton" className="button-side" onClick={() => logout()}>Logout</button>
+          <br />
+          <button onClick={() => window.history.back()} className="button-side" >Return</button>
           <br />
           <button onClick={() => window.location.href = '/'} className="button-side">Main</button><br />
           <br />
@@ -41,7 +43,9 @@ export default function Comments() {
 
         </section>
       </section>
-      <section id="commentsSection"></section>
+
+      <section id="commentsSection">
+      </section>
     </>
   );
 }

@@ -20,11 +20,13 @@ export default function TheirProfile() {
 
       </Head>
 
-      <section id="show" hidden>
+      <section id="show">
 
         <div className="sidebar-post right-sidebar">
           <br />
           <button id="logoutButton" className="button-side">Logout</button>
+          <br />
+          <button className="button-side" onClick={() => window.history.back()}>Return</button>
           <br />
           <button onClick={() => window.location.href = '/'} className="button-side">Main</button><br />
           <br />
@@ -49,12 +51,7 @@ export default function TheirProfile() {
         </section>
       </section>
       <section id="theirProfilePageSection">
-        <button
-          className="return-button"
-          onClick={() => window.location.href = '/posts'}
-        >
-          Return
-        </button>
+        
 
         <div className="container-main">
           <div className="profile-top">

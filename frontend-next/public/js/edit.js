@@ -3,41 +3,40 @@ const editProfileMessage = document.getElementById('editProfileMessage');
 // const username = localStorage.getItem('username') || ''; // Replace with actual username retrieval logic
 
 function submitProfile(username) {
-    const formData = new FormData(editProfileForm);
-    const data = {
-    username: formData.get('username'),
-    bio: formData.get('bio'),
-    fname: formData.get('fname'),
-    lname: formData.get('lname'),
-    email: formData.get('email'),
-    age: parseInt(formData.get('age')) || 0,
-    gender: formData.get('gender'),
-    avatar: formData.get('avatarInput') || '/img/images.png',
-    isPrivate: formData.get('isPrivate') === 'on' ? true : false
-};
+    const form = document.getElementById('editProfileForm');
+    const formData = new FormData(form);
 
-    fetch("http://localhost:8080/editPost/" + username, {
+    fetch(`http://localhost:8080/editPost/${username}`, {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
         credentials: 'include',
-        body: JSON.stringify(data)
+        body: formData
     })
-        .then(response => response.json())
+        .then(async res => {
+            const ct = res.headers.get('Content-Type') || '';
+            if (!res.ok && ct.includes('application/json')) {
+                const { message } = await res.json();
+                throw new Error(message);
+            } else if (!res.ok) {
+                const text = await res.text();
+                throw new Error(text);
+            }
+            // 2xx:
+            return res.json();
+        })
         .then(res => {
             if (!res.success) {
-                throw new Error('Failed to update profile');
+                throw new Error(res.message || 'Update failed');
             }
             editProfileMessage.textContent = 'Profile updated successfully!';
             editProfileMessage.className = 'message success';
             window.location.href = '/myProfile';
         })
-        .catch(error => {
-            editProfileMessage.textContent = 'Error updating profile: ' + error.message;
+        .catch(err => {
+            editProfileMessage.textContent = 'Error updating profile: ' + err.message;
             editProfileMessage.className = 'message error';
         });
 }
+
 
 
 function fetchUserProfile(username) {
@@ -58,13 +57,12 @@ function fetchUserProfile(username) {
             document.getElementById('username').value = profile.username || '';
             document.getElementById('bio').value = profile.bio || '';
             document.getElementById('fname').value = profile.fname || '';
-            document.getElementById('lname').value = profile.lname || ''; 
+            document.getElementById('lname').value = profile.lname || '';
             document.getElementById('email').value = profile.email || '';
             document.getElementById('gender').value = profile.gender || '';
             document.getElementById('email').value = profile.email || '';
             document.getElementById('age').value = profile.age || '';
-            document.getElementById('avatar').value = profile.avatar || '/img/images.png';
-            document.getElementById('isPrivate').value = profile.isPrivate || false;
+            document.getElementById('avatar').src = profile.avatar || '/img/images.png'; document.getElementById('isPrivate').value = profile.isPrivate || false;
             console.log("Profile data fetched successfully:", profile);
         })
         .catch(error => {

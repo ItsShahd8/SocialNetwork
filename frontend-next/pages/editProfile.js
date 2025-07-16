@@ -15,7 +15,7 @@ export default function EditProfile() {
         <script src="/js/chat.js" defer></script>
       </Head>
 
-      <section id="show" hidden>
+      <section id="show" >
         <div className="sidebar-post right-sidebar">
           <br />
           <button id="logoutButton" className="button-side">Logout</button>
@@ -67,7 +67,7 @@ export default function EditProfile() {
               <input
                 type="file"
                 id="avatarInput"
-                name="avatar"
+                name="avatarInput"
                 accept="image/*"
               />
             </div>

@@ -15,11 +15,13 @@ export default function CreatePost() {
         <script src="/js/socket.js" defer></script>
         <script src="/js/createPost.js" defer></script>
       </Head>
-      <section id="show" hidden>
+      <section id="show" >
 
         <div className="sidebar-post right-sidebar">
           <br />
           <button id="logoutButton" className="button-side" >Logout</button>
+          <br />
+          <button className="button-side" onClick={() => window.history.back()}>Return</button>
           <br />
           <button onClick={() => window.location.href = '/'} className="button-side">Main</button><br />
           <br />
@@ -45,7 +47,6 @@ export default function CreatePost() {
       </section>
 
       <section id="createPostSection">
-        <button className="return-button" onClick={() => window.history.back()}>Return</button>
         <div className="container-create">
           <h1>Create a New Post</h1>
 
