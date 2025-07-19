@@ -1,5 +1,4 @@
 import Head from 'next/head';
-import { useEffect } from 'react';
 
 export default function TheirProfile() {
 
@@ -17,6 +16,7 @@ export default function TheirProfile() {
         <script src="/js/likes.js" defer></script>
         <script src="/js/comments.js" defer></script>
         <script src="/js/chat.js" defer></script>
+        <script src="/js/follow.js" defer></script>
 
       </Head>
 
