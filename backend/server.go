@@ -1,17 +1,13 @@
 package main
 
 import (
+	"fmt"
 	"log"
-	"net/http"
 	"os"
 	"path/filepath"
-	handlers "social/pkg/api"
-	"social/pkg/db/sqlite"
-
-	"github.com/gorilla/sessions"
+	"socialnetwork/pkg/db/sqlite"
+	web "socialnetwork/web"
 )
-
-var store = sessions.NewCookieStore([]byte("your-secret-key")) // replace with secure random key
 
 func main() {
 	dbPath := "data/socialnetwork.db"
@@ -26,22 +22,7 @@ func main() {
 	}
 	defer db.Close()
 
-	http.HandleFunc("/api/register", handlers.RegisterHandler(db))
-	http.HandleFunc("/api/login", handlers.LoginHandler(db, store)) // if session store is setup
-	log.Println("Backend is running...")
-	log.Println("http://localhost:8080/")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	fmt.Println("✅ Database tables checked and initialized.")
+	web.ConnectWeb(db)
 
-}
-
-func IsAuthenticated(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		session, _ := store.Get(r, "session")
-		userID, ok := session.Values["user_id"]
-		if !ok || userID == "" {
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
-			return
-		}
-		next.ServeHTTP(w, r)
-	})
 }

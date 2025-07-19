@@ -1,28 +1,26 @@
-# Build stage
-FROM golang:1.20-alpine AS builder
+# Stage 1: Build Go binary
+FROM golang:1.23-alpine AS builder
 
 WORKDIR /app
 
-# Copy go.mod and go.sum and download deps
 COPY go.mod go.sum ./
 RUN go mod download
 
-# Copy backend source
+# Copy everything inside backend, including migrations under pkg/
 COPY . .
 
-# Build the binary
-RUN go build -o server .
+RUN go build -o main server.go
 
-# Final stage
+# Stage 2: Runtime image
 FROM alpine:latest
 
 WORKDIR /app
 
-# Copy the binary from builder
-COPY --from=builder /app/server .
+# Copy binary
+COPY --from=builder /app/main .
 
-# Expose port (e.g., 8080)
+# Copy everything needed including pkg (which has migrations)
+COPY --from=builder /app/pkg ./pkg
+
 EXPOSE 8080
-
-# Run the server
-CMD ["./server"]
+CMD ["./main"]
