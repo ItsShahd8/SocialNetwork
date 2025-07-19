@@ -3,6 +3,7 @@
 const signUpButton = document.getElementById('signUpButton');
 const logInButton = document.getElementById('logInButton');
 const postsButton = document.getElementById('postsButton');
+const groupsButton = document.getElementById('groupsButton');
 const aboutUsButton = document.getElementById('aboutUsButton');
 const logoutPostButton = document.getElementById('logoutPostButton');
 
@@ -19,6 +20,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (logInButton) logInButton.addEventListener('click', () => window.location.href='/login');
     if (postsButton) {
         postsButton.addEventListener('click', () => window.location.href='/posts');
+    }
+    if (groupsButton) {
+        groupsButton.addEventListener('click', () => window.location.href='/groups');
     }
     if (aboutUsButton) aboutUsButton.addEventListener('click', () => window.location.href='/aboutUs');
 

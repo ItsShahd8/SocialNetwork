@@ -48,6 +48,7 @@ export default function MainPage() {
             <button id="signUpButton" className="button-main" onClick={() => window.location.href = '/signUp'}>Sign Up</button>
             <button id="logInButton" className="button-main" onClick={() => window.location.href = '/login'}>Log In</button>
             <button id="postsButton" className="button-main" onClick={() => window.location.href = '/posts'}>Posts</button>
+            <button id="groupsButton" className="button-main" onClick={() => window.location.href = '/groups'}>Groups</button>
           </div>
         </div>
       </section>

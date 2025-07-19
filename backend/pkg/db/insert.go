@@ -54,6 +54,7 @@ func InsertPost(db *sql.DB, user_id int, title, content string) (int64, time.Tim
 
 	return id, createdAt, err
 }
+
 func InsertPostCategory(db *sql.DB, postID int, categoryID int) error {
 	query := `INSERT INTO post_categories (post_id, category_id) VALUES (?, ?)`
 	_, err := db.Exec(query, postID, categoryID)
@@ -90,7 +91,6 @@ func InsertLike(db *sql.DB, userID, postID, commentID int, isLike bool) error {
 	query := `INSERT INTO likes (user_id, post_id, comment_id, is_like) VALUES (?, ?, ?, ?)`
 	_, err := db.Exec(query, userID, postID, commentID, isLike)
 
-
 	return err
 }
 
@@ -119,4 +119,41 @@ func GetCategoryID(db *sql.DB, categoryName string) (int, error) {
 		}
 	}
 	return categoryID, nil
+}
+
+// InsertGroup creates a new group and returns its ID and creation time
+func InsertGroup(db *sql.DB, creatorID int, title, description string) (int64, time.Time, error) {
+	query := `INSERT INTO groups (creator_id, title, description) VALUES (?, ?, ?)`
+	result, err := db.Exec(query, creatorID, title, description)
+	if err != nil {
+		return -1, time.Time{}, err
+	}
+
+	id, err := result.LastInsertId()
+	if err != nil {
+		return -1, time.Time{}, err
+	}
+
+	// Get the creation time
+	var createdAt time.Time
+	err = db.QueryRow(`SELECT created_at FROM groups WHERE id = ?`, id).Scan(&createdAt)
+	if err != nil {
+		return id, time.Now(), nil // Return current time if query fails
+	}
+
+	return id, createdAt, nil
+}
+
+// InsertGroupMember adds a user to a group
+func InsertGroupMember(db *sql.DB, groupID int, userID int, status string, isAdmin bool) error {
+	query := `INSERT INTO group_members (group_id, user_id, status, is_admin) VALUES (?, ?, ?, ?)`
+	_, err := db.Exec(query, groupID, userID, status, isAdmin)
+	return err
+}
+
+// InsertGroupInvitation creates a group invitation
+func InsertGroupInvitation(db *sql.DB, groupID, inviterID, inviteeID int) error {
+	query := `INSERT INTO group_invitations (group_id, inviter_id, invitee_id) VALUES (?, ?, ?)`
+	_, err := db.Exec(query, groupID, inviterID, inviteeID)
+	return err
 }
