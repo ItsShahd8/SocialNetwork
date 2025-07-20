@@ -50,16 +50,19 @@ export default function CreatePost() {
         <div className="container-create">
           <h1>Create a New Post</h1>
 
-          <form id="createPostForm" method="POST">
+          <form id="createPostForm" method="POST" encType="multipart/form-data">
             <label htmlFor="title">Title:</label>
             <input type="text" id="title" name="title" required />
 
             <label htmlFor="content">Content:</label>
             <textarea id="content" name="content" rows="6" required></textarea>
-
+              <input
+                type="file"
+                id="imgOrgif"
+                name="imgOrgif"
+              />
             <br /><br />
             <label>Category:</label><br />
-
             <label>
               <input type="checkbox" name="category" value="Nature" /> Nature
             </label>

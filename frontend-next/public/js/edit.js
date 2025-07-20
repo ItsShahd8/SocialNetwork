@@ -84,3 +84,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 });
+
+//todo: reset to avatar:
+function remove() {
+    const avatar = document.getElementById('avatar');
+    avatar.src = '/img/images.png'; // Reset to default image
+    document.getElementById('avatarInput').value = ''; // Clear file input
+    console.log("Avatar removed");
+}

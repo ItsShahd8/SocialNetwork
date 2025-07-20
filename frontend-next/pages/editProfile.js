@@ -45,7 +45,7 @@ export default function EditProfile() {
       <section id="editPageSection">
         <div className="container-main">
           <div className="profile-top">
-            {/* Static Avatar Placeholder */}
+            <button id='removeAvatar' onClick={()=> remove()}>X</button>'
             <img
               src="/img/images.png"
               alt="Avatar"
