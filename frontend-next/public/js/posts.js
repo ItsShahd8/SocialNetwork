@@ -42,7 +42,7 @@ function loadPosts() {
                 <p>${post.content}</p>
                 <small>
                 Posted by 
-                <button onclick="window.location.href='/theirProfile?user=${encodeURIComponent(post.username)}'">${post.username}</button>
+                <button onclick="window.location.href='/theirProfile/${encodeURIComponent(post.username)}'">${post.username}</button>
                 on ${post.createdAt}
                 </small>
                 <br>
@@ -118,7 +118,7 @@ function loadMyPosts(myUsername) {
                         <p>${post.content}</p>
                         <small>
                         Posted by 
-                        <button onclick="window.location.href='/theirProfile?user=${encodeURIComponent(post.username)}'">${post.username}</button>
+                        <button onclick="window.location.href='/theirProfile/${encodeURIComponent(post.username)}'">${post.username}</button>
                         on ${post.createdAt}
                         </small>
                         <br>
@@ -219,7 +219,7 @@ function loadCategoryPosts(category) {
                 <p>${post.content}</p>
                 <small>
                 Posted by 
-                <button onclick="window.location.href='/theirProfile?user=${encodeURIComponent(post.username)}'">${post.username}</button>
+                <button onclick="window.location.href='/theirProfile/${encodeURIComponent(post.username)}'">${post.username}</button>
                 on ${post.createdAt}
                 </small>
                 <br>
@@ -299,7 +299,7 @@ function loadTheirProfile(username, myUsername) {
                 <p>${post.content}</p>
                 <small>
                     Posted by 
-                    <button onclick="window.location.href='/theirProfile?user=${encodeURIComponent(post.username)}'">${post.username}</button> 
+                    <button onclick="window.location.href='/theirProfile/${encodeURIComponent(post.username)}'">${post.username}</button> 
                     on ${post.createdAt}
                 </small><br>
                 <small>Category: ${post.categories.join(", ")}</small>

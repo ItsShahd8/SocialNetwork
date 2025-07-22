@@ -19,6 +19,7 @@ function checkSession() {
             const signUpButton = document.getElementById('signUpButton');
             const logInButton = document.getElementById('logInButton');
             const postsButton = document.getElementById('postsButton');
+            const groupsButton = document.getElementById('groupsButton');
             const logoutButton = document.getElementById('logoutButton');
 
             if (data.loggedIn && typeof data.userID !== "undefined") {
@@ -32,6 +33,7 @@ function checkSession() {
                 }
                 if(show) show.hidden = false;
                 if (postsButton) postsButton.style.display = "inline-block";
+                if (groupsButton) groupsButton.style.display = "inline-block";
                 if (logoutButton) {logoutButton.style.display = "inline-block";
                     logoutButton.addEventListener('click', logout);
                 }
@@ -46,6 +48,7 @@ function checkSession() {
 
                 if (logoutButton) logoutButton.style.display = "none";
                 if (postsButton) postsButton.style.display = "none";
+                if (groupsButton) groupsButton.style.display = "none";
                 if(show) show.hidden = true;
                 if (
                     window.location.pathname !== "/index" &&

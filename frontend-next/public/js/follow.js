@@ -1,46 +1,47 @@
-document.addEventListener('DOMContentLoaded', () => {
-  const followButton = document.getElementById('followButton');
-  if (!followButton) return; // no button found
+// public/js/follow.js
 
-//todo: get the username from url.
-  let isFollowing = followButton.dataset.following === 'true';
+(function() {
+  const btn = document.getElementById('followButton');
+  if (!btn) return;
 
-  // Update the button text and styling based on follow state
+  // Only update the profile's follower count
+  const followersCountEl = document.getElementById('userFollowers');
+
+  const profileId   = btn.dataset.profileId;
+  let   isFollowing = btn.dataset.following === 'true';
+
   function updateButton() {
-    followButton.textContent = isFollowing ? 'Unfollow' : 'Follow';
-    followButton.classList.toggle('following', isFollowing);
+    btn.textContent = isFollowing ? 'Unfollow' : 'Follow';
+    btn.classList.toggle('following', isFollowing);
   }
 
-  // Send request to backend to follow or unfollow
+  function updateFollowersCount(delta) {
+    if (!followersCountEl) return;
+    const current = parseInt(followersCountEl.textContent, 10) || 0;
+    followersCountEl.textContent = current + delta;
+  }
+
   async function toggleFollow() {
-    const url = `http://localhost:8080/follow/${profileId}`;
+    // Send requests directly to the Go backend
+    const url    = `http://localhost:8080/api/users/${profileId}/follow`;
     const method = isFollowing ? 'DELETE' : 'POST';
 
     try {
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
+      const res = await fetch(url, { method, credentials: 'include' });
+      if (!res.ok) throw new Error(res.status);
 
-      if (!response.ok) {
-        throw new Error(`Server error: ${response.status}`);
-      }
-
-      // Flip state and update UI
+      // Toggle state
       isFollowing = !isFollowing;
-      followButton.dataset.following = isFollowing;
+      btn.dataset.following = String(isFollowing);
       updateButton();
-    } catch (err) {
-      console.error('Failed to toggle follow status:', err);
-      // Optionally show user feedback here
+
+      // Adjust only the profile's follower count
+      updateFollowersCount(isFollowing ? 1 : -1);
+    } catch (e) {
+      console.error('Toggle follow failed', e);
     }
   }
 
-  // Attach click handler
-  followButton.addEventListener('click', toggleFollow);
-
-  // Initialize button on load
+  btn.addEventListener('click', toggleFollow);
   updateButton();
-});
+})();
