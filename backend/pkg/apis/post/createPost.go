@@ -25,7 +25,6 @@ func CreatePost(db *sql.DB, w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    // Validate session and get user ID
     userID, loggedIn := u.ValidateSession(db, r)
     if !loggedIn {
         http.Error(w, "Unauthorized. Please log in.", http.StatusUnauthorized)
