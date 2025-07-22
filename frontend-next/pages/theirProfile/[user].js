@@ -51,10 +51,44 @@ export default function TheirProfile({ profile, isFollowing: initialFollow }) {
     <>
       <Head>
         <title>{profile.username} – Profile</title>
+        <meta charSet="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <link rel="stylesheet" href="/css/style.css" />
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+        <script src="/js/session.js" defer></script>
+        <script src="/js/socket.js" defer></script>
+        <script src="/js/posts.js" defer></script>
+        <script src="/js/likes.js" defer></script>
+        <script src="/js/comments.js" defer></script>
+        <script src="/js/chat.js" defer></script>
       </Head>
 
       <Script src="/js/follow.js" strategy="afterInteractive" />
+      <section id="show">
+
+        <div className="sidebar-post right-sidebar">
+          <button id="logoutButton" className="button-side" >Logout</button>
+          <button onClick={() => window.location.href = '/'} className="button-side">Main</button><br />
+          <ul id="userList"></ul>
+        </div>
+
+        <section className="chat-main" id="chat-main" hidden>
+
+          <div className="chat-header">
+            <h3 id="chatWithLabel">Chat</h3>
+            <button id="closeChatButton" className="close-chat-button">x</button>
+          </div>
+
+          <div id="chatWindow" className="chat-window">
+          </div>
+
+          <form id="chatForm">
+            <input type="text" id="chatInput" placeholder="Type a message..." required />
+            <button type="submit" className="button-main">Send</button>
+          </form>
+
+        </section>
+      </section>
 
       <section id="theirProfilePageSection">
         <div className="profile-top">
@@ -78,8 +112,11 @@ export default function TheirProfile({ profile, isFollowing: initialFollow }) {
         </div>
 
         <section id="postPageSection">
-          <div id="postsContainer"></div>
-        </section>
+            
+            <div className="container-theirProfilePost">
+              <div id="postsContainer"></div>
+            </div>
+          </section>
       </section>
     </>
   )
