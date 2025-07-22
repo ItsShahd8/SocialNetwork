@@ -111,6 +111,36 @@ func ConnectWeb(db *sql.DB) {
 		}
 		p.CreatePost(db, w, r) //  This is the API to save posts
 	}))
+	// Add this after your /create-post handler
+	http.HandleFunc("/get-followers", cor.WithCORS(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		// Validate session and get user ID
+		userID, loggedIn := u.ValidateSession(db, r)
+		if !loggedIn {
+			http.Error(w, "Unauthorized. Please log in.", http.StatusUnauthorized)
+			return
+		}
+
+		// Get user's followers
+		followers, err := database.GetUserFollowers(db, userID)
+		if err != nil {
+			fmt.Println("Error getting followers:", err)
+			http.Error(w, "Failed to get followers", http.StatusInternalServerError)
+			return
+		}
+
+		response := map[string]interface{}{
+			"followers": followers,
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(response)
+	}))
+
 
 	// likes
 	likesRepo := likerepo.NewLikesRepository(db)

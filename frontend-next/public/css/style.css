@@ -1020,3 +1020,90 @@ input[type="submit"]:hover {
         justify-content: flex-end;
     }
 }
+
+
+
+/* Privacy Options - Make sure these are visible */
+.container-create .privacy-options {
+    display: flex !important;
+    flex-direction: column;
+    gap: 12px;
+    margin: 15px 0;
+    padding: 15px;
+    background: #f0f8ff;
+    border-radius: 5px;
+    border: 2px solid #2196F3;
+    visibility: visible !important;
+}
+
+.container-create .privacy-options label {
+    display: flex !important;
+    align-items: center;
+    font-weight: normal !important;
+    margin: 0;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 3px;
+    transition: background-color 0.2s;
+    visibility: visible !important;
+}
+
+.container-create .privacy-options label:hover {
+    background-color: rgba(33, 150, 243, 0.1);
+}
+
+.container-create .privacy-options input[type="radio"] {
+    margin-right: 12px;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: #2196F3;
+    display: inline-block !important;
+    visibility: visible !important;
+}
+
+/* Form section styling */
+.container-create .form-section {
+    margin-bottom: 25px;
+    display: block;
+}
+
+.container-create .form-section > label {
+    font-size: 18px;
+    font-weight: bold;
+    margin-top: 25px;
+    margin-bottom: 15px;
+    color: #333;
+    border-bottom: 2px solid #4CAF50;
+    padding-bottom: 5px;
+    display: block;
+}
+
+/* Category options styling */
+.container-create .category-options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 15px 0;
+    padding: 15px;
+    background: #f9f9f9;
+    border-radius: 5px;
+    border: 2px solid #4CAF50;
+}
+
+.container-create .category-options label {
+    display: flex !important;
+    align-items: center;
+    font-weight: normal !important;
+    margin: 0;
+    cursor: pointer;
+    padding: 5px;
+}
+
+.container-create .category-options input[type="checkbox"] {
+    margin-right: 10px;
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    display: inline-block !important;
+}
