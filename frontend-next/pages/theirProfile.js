@@ -1,9 +1,9 @@
 import Head from 'next/head';
-import { useEffect } from 'react';
 
 export default function TheirProfile() {
 
   return (
+    { ssr: false },
     <>
       <Head>
         <title>Welcome Page</title>
@@ -51,11 +51,16 @@ export default function TheirProfile() {
         </section>
       </section>
       <section id="theirProfilePageSection">
-        
+
 
         <div className="container-main">
           <div className="profile-top">
-            <img src="/css/logo.png" alt="Logo" />
+            <img
+              src="/img/avatarsimages.png"
+              alt="Avatar"
+              className="avatar-preview"
+              id='avatar'
+            />
             <div className="follow">
               <p id="profileUsername">Username</p>
               <p>Followers: <span id="userFollowers">0</span></p>

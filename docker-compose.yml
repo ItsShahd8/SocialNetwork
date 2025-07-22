@@ -6,7 +6,8 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - ./data:/app/data 
+      - ./backend/data:/app/data 
+      - ./frontend-next/public/img:/frontend-next/public/img
     restart: unless-stopped
 
   frontend:
@@ -14,3 +15,4 @@ services:
     ports:
       - "3000:3000"
     restart: unless-stopped
+    command: ["npm", "run", "dev"]

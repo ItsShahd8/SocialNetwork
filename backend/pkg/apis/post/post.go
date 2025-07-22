@@ -16,7 +16,7 @@ func GetPosts(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Query posts from database
-	rows, err := db.Query(`SELECT posts.id, users.username, posts.title, posts.content, posts.created_at 
+	rows, err := db.Query(`SELECT posts.id, users.username, posts.title, posts.content,posts.imgOrgif, posts.created_at
                            FROM posts 
                            JOIN users ON posts.user_id = users.id 
                            ORDER BY posts.created_at DESC`)
@@ -32,10 +32,10 @@ func GetPosts(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 
 	for rows.Next() {
 		var postID int
-		var username, title, content string
+		var username, title, content, imgOrgif string
 		var createdAt time.Time
 
-		err := rows.Scan(&postID, &username, &title, &content, &createdAt)
+		err := rows.Scan(&postID, &username, &title, &content, &imgOrgif, &createdAt)
 		if err != nil {
 			fmt.Println(" Error scanning post:", err)
 			http.Error(w, "Failed to process posts", http.StatusInternalServerError)
@@ -56,6 +56,7 @@ func GetPosts(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 			"username":   username,
 			"title":      title,
 			"content":    content,
+			"imgOrgif":   imgOrgif,
 			"categories": categories,
 			"createdAt":  createdAt.Format("2006-01-02 15:04:05"),
 		}

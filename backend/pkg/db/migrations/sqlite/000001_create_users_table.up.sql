@@ -10,5 +10,5 @@ CREATE TABLE IF NOT EXISTS users (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     bio TEXT,
     isPrivate BOOLEAN NOT NULL DEFAULT 0,
-    avatar_url   TEXT    DEFAULT 'frontend-next\\public\\img\\images.png'
+    avatar_url   TEXT    DEFAULT 'frontend-next/public/img/avatars/images.png'
 );

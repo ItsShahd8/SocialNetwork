@@ -52,8 +52,8 @@ export default function MyProfile() {
         <div className="container-main">
           <div className="profile-top">
             <img
-              src="/img/images.png"
-              alt="/img/images.png"
+              src="/img/avatars/images.png"
+              alt= "Avatar"
               className="avatar-preview"
               id='avatar'
             />

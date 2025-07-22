@@ -36,10 +36,22 @@ function loadPosts() {
             posts.forEach(post => {
                 const postElement = document.createElement('div');
                 postElement.classList.add('post-post');
+
+                console.log("Post data:", post);
+                const imageUrl = post.imgOrgif; // or post.imgOrgif
+                console.log("Image URL:", imageUrl);
+                const imageHtml = imageUrl
+                    ? `<img src="${imageUrl}" alt="Post Image" class="postImage" />`
+                    : '';
+
+                console.log("imageHtml:", imageHtml);
                 postElement.innerHTML = `
             <div class="comment-post">
                 <h2>${post.title}</h2>
                 <p>${post.content}</p>
+                <div class="img-post">
+                ${imageHtml}
+                </div>
                 <small>
                 Posted by 
                 <button onclick="window.location.href='/theirProfile?user=${encodeURIComponent(post.username)}'">${post.username}</button>
@@ -55,7 +67,8 @@ function loadPosts() {
             <small>
                 <span id="likesCountPost${post.id}">Likes: 0</span>
                 <span id="dislikesCountPost${post.id}">Dislikes: 0</span>
-            </small>                    </div>
+            </small>                    
+            </div>
         `;
                 postContainer.appendChild(postElement);
                 //  Fetch updated likes/dislikes for this post
@@ -109,31 +122,42 @@ function loadMyPosts(myUsername) {
             }
 
             posts.forEach(post => {
-                localStorage.setItem('username', post.username); // Store username in localStorage
                 const postElement = document.createElement('div');
                 postElement.classList.add('post-post');
+
+                console.log("Post data:", post);
+                const imageUrl = post.imgOrgif; // or post.imgOrgif
+                console.log("Image URL:", imageUrl);
+                const imageHtml = imageUrl
+                    ? `<img src="${imageUrl}" alt="Post Image" class="postImage" />`
+                    : '';
+
+                console.log("imageHtml:", imageHtml);
                 postElement.innerHTML = `
-                    <div class="comment-post">
-                        <h2>${post.title}</h2>
-                        <p>${post.content}</p>
-                        <small>
-                        Posted by 
-                        <button onclick="window.location.href='/theirProfile?user=${encodeURIComponent(post.username)}'">${post.username}</button>
-                        on ${post.createdAt}
-                        </small>
-                        <br>
-                        <small>Category: ${post.categories.join(", ")}</small>
-                        <br><br>
-                        <button class="commentsButton button-main" data-post-id="${post.id}">See comments</button>
-                        <br><br>
-                        <span class="material-icons" onclick="likeDislikePost(${post.id}, true);"> thumb_up </span>
-                        <span class="material-icons" onclick="likeDislikePost(${post.id}, false);"> thumb_down </span>
-                        <small>
-                            <span id="likesCountPost${post.id}">Likes: 0</span>
-                            <span id="dislikesCountPost${post.id}">Dislikes: 0</span>
-                        </small>                    
-                    </div>
-                `;
+            <div class="comment-post">
+                <h2>${post.title}</h2>
+                <p>${post.content}</p>
+                <div class="img-post">
+                ${imageHtml}
+                </div>
+                <small>
+                Posted by 
+                <button onclick="window.location.href='/theirProfile?user=${encodeURIComponent(post.username)}'">${post.username}</button>
+                on ${post.createdAt}
+                </small>
+                <br>
+                <small>Category: ${post.categories.join(", ")}</small>
+                <br><br>
+                <button class="commentsButton button-main" data-post-id="${post.id}">See comments</button>
+                <br><br>
+                <span class="material-icons" onclick="likeDislikePost(${post.id}, true); "> thumb_up </span>
+                <span class="material-icons" onclick="likeDislikePost(${post.id}, false); "> thumb_down </span>
+            <small>
+                <span id="likesCountPost${post.id}">Likes: 0</span>
+                <span id="dislikesCountPost${post.id}">Dislikes: 0</span>
+            </small>                    
+            </div>
+        `;
                 postContainer.appendChild(postElement);
                 //  Fetch updated likes/dislikes for this post
                 getInteractions(post.id);
@@ -162,7 +186,7 @@ function loadMyPosts(myUsername) {
         })
         .then(profile => {
             document.getElementById('profileBio').innerHTML = profile.bio || 'No bio available.';
-            document.getElementById('avatar').src = profile.avatar || '/img/images.png';
+            document.getElementById('avatar').src = profile.avatar || '/img/avatars/images.png';
             console.log("Profile Bio: ", profile.bio);
             console.log("Avatar URL: ", profile.avatar);
         })
@@ -257,7 +281,7 @@ function loadTheirProfile(username, myUsername) {
         return;
     }
     const profileUsername = document.getElementById('profileUsername');
-    profileUsername.innerHTML = username;
+    profileUsername.textContent = username;
     fetch('http://localhost:8080/get-otherPosts/' + username, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
@@ -282,6 +306,11 @@ function loadTheirProfile(username, myUsername) {
                 profileBio.innerHTML = profile.bio || 'No bio available.';
             }
 
+            const avatar = document.getElementById('avatar');
+            if (avatar) {
+                avatar.src = profile.avatar || '/img/avatars/images.png';
+            }
+
             const postContainer = document.querySelector('.container-theirProfilePost');
             postContainer.innerHTML = '';
             postContainer.innerHTML += '<h1>Posts</h1>';
@@ -294,38 +323,51 @@ function loadTheirProfile(username, myUsername) {
             posts.forEach(post => {
                 const postElement = document.createElement('div');
                 postElement.classList.add('post-post');
+
+                console.log("Post data:", post);
+                const imageUrl = post.imgOrgif; // or post.imgOrgif
+                console.log("Image URL:", imageUrl);
+                const imageHtml = imageUrl
+                    ? `<img src="${imageUrl}" alt="Post Image" class="postImage" />`
+                    : '';
+
+                console.log("imageHtml:", imageHtml);
                 postElement.innerHTML = `
             <div class="comment-post">
                 <h2>${post.title}</h2>
                 <p>${post.content}</p>
+                <div class="img-post">
+                ${imageHtml}
+                </div>
                 <small>
-                    Posted by 
-                    <button onclick="window.location.href='/theirProfile?user=${encodeURIComponent(post.username)}'">${post.username}</button> 
-                    on ${post.createdAt}
-                </small><br>
+                Posted by 
+                <button onclick="window.location.href='/theirProfile?user=${encodeURIComponent(post.username)}'">${post.username}</button>
+                on ${post.createdAt}
+                </small>
+                <br>
                 <small>Category: ${post.categories.join(", ")}</small>
                 <br><br>
                 <button class="commentsButton button-main" data-post-id="${post.id}">See comments</button>
                 <br><br>
-                <span class="material-icons" onclick="likeDislikePost(${post.id}, true);"> thumb_up </span>
-                <span class="material-icons" onclick="likeDislikePost(${post.id}, false);"> thumb_down </span>
-                <small>
-                    <span id="likesCountPost${post.id}">Likes: 0</span>
-                    <span id="dislikesCountPost${post.id}">Dislikes: 0</span>
-                </small>                    
+                <span class="material-icons" onclick="likeDislikePost(${post.id}, true); "> thumb_up </span>
+                <span class="material-icons" onclick="likeDislikePost(${post.id}, false); "> thumb_down </span>
+            <small>
+                <span id="likesCountPost${post.id}">Likes: 0</span>
+                <span id="dislikesCountPost${post.id}">Dislikes: 0</span>
+            </small>                    
             </div>
         `;
                 postContainer.appendChild(postElement);
+                //  Fetch updated likes/dislikes for this post
                 getInteractions(post.id);
             });
 
             document.querySelectorAll('.commentsButton').forEach(button => {
-                button.addEventListener('click', () => {
-                    window.location.href = '/comments?post_id=' + button.dataset.postId;
-                });
+                button.addEventListener('click', () => window.location.href = '/comments?post_id=' + button.dataset.postId);
             });
+
         })
-        .catch(error => console.log('Error:', error));
+        .catch(error => console.log(error));
 
 }
 

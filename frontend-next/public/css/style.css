@@ -578,3 +578,17 @@ input[type="submit"]:hover {
     margin-bottom: 20px;
     max-width: 200px;
 }
+
+
+.comment-post .img-post {
+  width: 100%;            /* fill the width of .comment-post */
+  max-height: 500px;      /* optional: limit how tall the image area can get */
+  overflow: auto;       /* crop anything that hangs outside */
+}
+
+.comment-post .img-post img {
+  display: block;         /* removes inline-img whitespace */
+  width: 100%;            /* scale to container’s width */
+  height: auto;           /* keep aspect ratio */
+  object-fit: cover;      /* if you fix height, this crops to fill */
+}

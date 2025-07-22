@@ -20,7 +20,7 @@ export default function Posts() {
         <script src="/js/chat.js" defer></script>
       </Head>
 
-      <section id="show" hidden>
+      <section id="show">
 
         <div className="sidebar-post right-sidebar">
           <br />

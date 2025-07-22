@@ -3,16 +3,21 @@ package post
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
+	"io"
+	"log"
 	"net/http"
+	"os"
+	"path/filepath"
 	u "socialnetwork/pkg/apis/user"
-	"socialnetwork/pkg/db"
+	database "socialnetwork/pkg/db"
+	"strings"
 )
 
 // Post structure
 type Post struct {
 	Title      string   `json:"title"`
 	Content    string   `json:"content"`
+	ImgOrGif   string   `json:"imgOrgif"`
 	Categories []string `json:"categories"`
 }
 
@@ -23,78 +28,99 @@ func CreatePost(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Validate session and get user ID
+	// 1) validate session
 	userID, loggedIn := u.ValidateSession(db, r)
 	if !loggedIn {
 		http.Error(w, "Unauthorized. Please log in.", http.StatusUnauthorized)
 		return
 	}
 
-	// Parse request body
-	var postData Post
-	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&postData); err != nil {
-		fmt.Println(" JSON Decoding Error:", err)
-		http.Error(w, "Failed to parse JSON", http.StatusBadRequest)
+	// 2) parse multipart form (up to 10 MB in memory)
+	if err := r.ParseMultipartForm(10 << 20); err != nil {
+		http.Error(w, "Could not parse form", http.StatusBadRequest)
 		return
 	}
 
-	// Validate post fields
-	if postData.Title == "" || postData.Content == "" {
+	// 3) pull out text fields
+	title := strings.TrimSpace(r.FormValue("title"))
+	content := strings.TrimSpace(r.FormValue("content"))
+	if title == "" || content == "" {
 		http.Error(w, "Title and Content cannot be empty.", http.StatusBadRequest)
 		return
 	}
 
-	// Insert the post into the database
-	postID, createdAt, err := database.InsertPost(db, userID, postData.Title, postData.Content)
+	// 4) handle optional image upload
+	imgOrGif := ""
+	file, header, err := r.FormFile("imgOrgif")
+	if err == nil {
+		defer file.Close()
+
+		// sanitize extension
+		ext := strings.ToLower(filepath.Ext(header.Filename))
+		if ext != ".gif" && ext != ".png" && ext != ".jpg" && ext != ".jpeg" {
+			http.Error(w, "Image must be a GIF, PNG, or JPG.", http.StatusBadRequest)
+			return
+		}
+
+		// generate a safe filename
+		fname := strings.ReplaceAll(header.Filename, " ", "-")
+		dstFile, err := os.Create("../../../frontend-next/public/img/posts/" + fname)
+		if err != nil {
+			log.Println("file create error:", err)
+			http.Error(w, "Server error", http.StatusInternalServerError)
+			return
+		}
+		defer dstFile.Close()
+
+		if _, err := io.Copy(dstFile, file); err != nil {
+			log.Println("file copy error:", err)
+			http.Error(w, "Server error", http.StatusInternalServerError)
+			return
+		}
+
+		// this is the URL your frontend can use to display the image
+		imgOrGif = "/img/posts/" + fname
+	} else if err != http.ErrMissingFile {
+		http.Error(w, "Error reading uploaded file", http.StatusBadRequest)
+		return
+	}
+
+	// 5) parse categories (checkboxes with name="category")
+	cats := r.MultipartForm.Value["category"]
+	if len(cats) == 0 {
+		cats = []string{"none"}
+	}
+
+	// 6) insert the post record
+	postID, createdAt, err := database.InsertPost(db, userID, title, content, imgOrGif)
 	if err != nil {
-		fmt.Println(" Error inserting post:", err)
+		log.Println("InsertPost error:", err)
 		http.Error(w, "Failed to create post", http.StatusInternalServerError)
 		return
 	}
 
-	if len(postData.Categories) < 1 {
-		category := "none"
-		categoryID, err := database.GetCategoryID(db, category)
+	// 7) link categories
+	for _, catName := range cats {
+		catID, err := database.GetCategoryID(db, catName)
 		if err != nil {
-			fmt.Println(" Error getting category ID:", err)
+			log.Println("GetCategoryID error:", err)
 			http.Error(w, "Failed to retrieve category", http.StatusInternalServerError)
 			return
 		}
-
-		err = database.InsertPostCategory(db, int(postID), categoryID)
-		if err != nil {
-			fmt.Println(" Error linking post to category:", err)
-			http.Error(w, "Failed to associate post with category", http.StatusInternalServerError)
+		if err := database.InsertPostCategory(db, int(postID), catID); err != nil {
+			log.Println("InsertPostCategory error:", err)
+			http.Error(w, "Failed to link category", http.StatusInternalServerError)
 			return
-		}
-	} else {
-		// Insert categories into the database
-		for _, categoryName := range postData.Categories {
-			categoryID, err := database.GetCategoryID(db, categoryName)
-			if err != nil {
-				fmt.Println(" Error getting category ID:", err)
-				http.Error(w, "Failed to retrieve category", http.StatusInternalServerError)
-				return
-			}
-
-			err = database.InsertPostCategory(db, int(postID), categoryID)
-			if err != nil {
-				fmt.Println(" Error linking post to category:", err)
-				http.Error(w, "Failed to associate post with category", http.StatusInternalServerError)
-				return
-			}
 		}
 	}
 
-	// Send success response
-	response := map[string]interface{}{
+	// 8) success
+	resp := map[string]interface{}{
 		"success":   true,
 		"message":   "Post created successfully.",
 		"postID":    postID,
 		"createdAt": createdAt,
 	}
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(response)
+	json.NewEncoder(w).Encode(resp)
 }

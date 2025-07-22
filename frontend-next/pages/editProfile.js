@@ -22,7 +22,7 @@ export default function EditProfile() {
           <br />
           <button className="button-side" onClick={() => window.location.href = '/myProfile'}>Return</button>
           <br />
-          <button onClick={() => window.location.href = '/'} className="button-side">Main</button><br />
+          <button onClick={() => window.location.href = '/'} className="button-side">Main</button>
           <br />
           <ul id="userList"></ul>
         </div>
@@ -45,7 +45,7 @@ export default function EditProfile() {
       <section id="editPageSection">
         <div className="container-main">
           <div className="profile-top">
-            <button id='removeAvatar' onClick={()=> remove()}>X</button>'
+            <button id='removeAvatar' onClick={()=> remove()}>X</button>
             <img
               src="/img/images.png"
               alt="Avatar"

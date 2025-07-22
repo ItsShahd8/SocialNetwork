@@ -16,7 +16,7 @@ func GetAllUserNames(db *sql.DB) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close() 
+	defer rows.Close()
 
 	// Slice to hold the results
 	var usernames []string
@@ -39,7 +39,6 @@ func GetAllUserEmails(db *sql.DB) ([]string, error) {
 		return nil, err
 	}
 	defer rows.Close()
-
 
 	var emails []string
 	for rows.Next() {
@@ -176,7 +175,7 @@ func GetPostByPostID(db *sql.DB, postID int) ([]map[string]interface{}, error) {
 
 func GetPostsByUserID(db *sql.DB, userID int) ([]map[string]interface{}, error) {
 	query := `
-	SELECT p.id, u.username, p.title, p.content, p.created_at 
+	SELECT p.id, u.username, p.title, p.content,p.imgOrgif, p.created_at 
 	FROM posts p
 	JOIN users u ON p.user_id = u.id 
 	WHERE u.id = ? 
@@ -192,10 +191,10 @@ func GetPostsByUserID(db *sql.DB, userID int) ([]map[string]interface{}, error) 
 	var posts []map[string]interface{}
 	for rows.Next() {
 		var postID int
-		var username, title, content string
+		var username, title, content, imgOrgif string
 		var createdAt time.Time
 
-		err := rows.Scan(&postID, &username, &title, &content, &createdAt)
+		err := rows.Scan(&postID, &username, &title, &content, &imgOrgif, &createdAt)
 		if err != nil {
 			fmt.Println(" Error scanning user post:", err)
 			return nil, err
@@ -212,6 +211,7 @@ func GetPostsByUserID(db *sql.DB, userID int) ([]map[string]interface{}, error) 
 			"username":   username,
 			"title":      title,
 			"content":    content,
+			"imgOrgif":   imgOrgif,
 			"categories": categories,
 			"createdAt":  createdAt.Format("2006-01-02 15:04:05"),
 		}
@@ -222,7 +222,7 @@ func GetPostsByUserID(db *sql.DB, userID int) ([]map[string]interface{}, error) 
 
 func GetPostByCategoryID(db *sql.DB, catID int) ([]map[string]interface{}, error) {
 	query := `
-	SELECT p.id, u.username, p.title, p.content, p.created_at 
+	SELECT p.id, u.username, p.title, p.content,p.imgOrgif, p.created_at 
 	FROM posts p
 	JOIN post_categories pc ON pc.post_id = p.id
 	JOIN categories c ON c.id = pc.category_id
@@ -238,10 +238,10 @@ func GetPostByCategoryID(db *sql.DB, catID int) ([]map[string]interface{}, error
 	var posts []map[string]interface{}
 	for rows.Next() {
 		var postID int
-		var username, title, content string
+		var username, title, content, imgOrgif string
 		var createdAt time.Time
 
-		err := rows.Scan(&postID, &username, &title, &content, &createdAt)
+		err := rows.Scan(&postID, &username, &title, &content, &imgOrgif, &createdAt)
 		if err != nil {
 			return nil, fmt.Errorf("error scanning post: %w", err)
 		}
@@ -256,6 +256,7 @@ func GetPostByCategoryID(db *sql.DB, catID int) ([]map[string]interface{}, error
 			"username":   username,
 			"title":      title,
 			"content":    content,
+			"imgOrgif":   imgOrgif,
 			"categories": categories,
 			"createdAt":  createdAt.Format("2006-01-02 15:04:05"),
 		}
@@ -282,7 +283,7 @@ func GetCategoryIDByName(db *sql.DB, category string) (int, error) {
 
 func GetPostIfLiked(db *sql.DB, userID int) ([]map[string]interface{}, error) {
 	query := `
-	SELECT p.id, u.username, p.title, p.content, p.created_at 
+	SELECT p.id, u.username, p.title, p.content,p.imgOrgif, p.created_at 
 	FROM posts p
 	JOIN users u ON u.id = p.user_id
 	JOIN likes l ON l.post_id = p.id AND l.is_like = 1
@@ -297,10 +298,10 @@ func GetPostIfLiked(db *sql.DB, userID int) ([]map[string]interface{}, error) {
 	var posts []map[string]interface{}
 	for rows.Next() {
 		var postID int
-		var username, title, content string
+		var username, title, content,imgOrgif string
 		var createdAt time.Time
 
-		err := rows.Scan(&postID, &username, &title, &content, &createdAt)
+		err := rows.Scan(&postID, &username, &title, &content,&imgOrgif, &createdAt)
 		if err != nil {
 			return nil, fmt.Errorf("error scanning post: %w", err)
 		}
@@ -315,6 +316,7 @@ func GetPostIfLiked(db *sql.DB, userID int) ([]map[string]interface{}, error) {
 			"username":   username,
 			"title":      title,
 			"content":    content,
+			"imgOrgif":   imgOrgif,
 			"categories": categories,
 			"createdAt":  createdAt.Format("2006-01-02 15:04:05"),
 		}

@@ -323,7 +323,6 @@ func ConnectWeb(db *sql.DB) {
 					})
 				}
 			}
-
 			w.Header().Set("Content-Type", "application/json")
 			json.NewEncoder(w).Encode(users)
 		}

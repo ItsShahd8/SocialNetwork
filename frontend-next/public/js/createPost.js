@@ -5,27 +5,15 @@ const createPostForm = document.getElementById('createPostForm');
 
 //Create form
 if (createPostForm) {
-    createPostForm.addEventListener('submit', function (event) {
-
-        event.preventDefault(); // Prevent default form submission
-
-        // Get selected categories (checkboxes)
-        const selectedCategories = [];
-        document.querySelectorAll('input[name="category"]:checked').forEach((checkbox) => {
-            selectedCategories.push(checkbox.value);
-        });
-
-        const postData = {
-            title: document.getElementById('title').value,
-            content: document.getElementById('content').value,
-            categories: selectedCategories // Send array of selected categories
-        };
+    createPostForm.addEventListener('submit', e => {
+        e.preventDefault();
+        const form = document.getElementById('createPostForm');
+        const data = new FormData(form);
 
         fetch('http://localhost:8080/create-post', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(postData),
-            credentials: 'include' // Ensures session cookies are sent
+            credentials: 'include',
+            body: data
         })
             .then(response => response.json())
             .then(data => {

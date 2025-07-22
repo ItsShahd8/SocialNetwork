@@ -32,9 +32,9 @@ func InsertCategory(db *sql.DB, name string) (int, error) {
 	return int(id), err
 }
 
-func InsertPost(db *sql.DB, user_id int, title, content string) (int64, time.Time, error) {
-	query := `INSERT INTO posts (user_id, title, content) VALUES (?, ?, ?)`
-	result, err := db.Exec(query, user_id, title, content)
+func InsertPost(db *sql.DB, user_id int, title, content, imgOrgif string) (int64, time.Time, error) {
+	query := `INSERT INTO posts (user_id, title, content,imgOrgif) VALUES (?, ?, ?,?)`
+	result, err := db.Exec(query, user_id, title, content,imgOrgif)
 	if err != nil {
 		return -1, time.Time{}, err
 	}

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -91,29 +92,39 @@ func UpdateProfileHandler(db *sql.DB, w http.ResponseWriter, r *http.Request, cu
 		existing.Bio = existingBio.String
 	}
 
-	// 3) handle file upload (if any)
+	// 3) determine avatarURL: reset, upload, or keep existing
 	avatarURL := existing.Avatar
-	file, header, err := r.FormFile("avatarInput")
-	if err == nil {
-		defer file.Close()
-		// save to disk (adjust path as needed)
-		dst, err := os.Create("../frontend-next/public/img/" + header.Filename)
-		if err != nil {
-			http.Error(w, "could not save avatar", http.StatusInternalServerError)
+
+	// 3a) reset flag takes highest precedence
+	if r.FormValue("resetAvatar") == "true" {
+		avatarURL = "/img/images.png"
+	} else {
+		// 3b) otherwise, check for a new upload
+		file, header, err := r.FormFile("avatarInput")
+		safeName := strings.ReplaceAll(header.Filename, " ", "-")
+		header.Filename = safeName
+
+		if err == nil {
+			defer file.Close()
+			dst, err := os.Create("../../../frontend-next/public/img/avatars/" + header.Filename)
+			if err != nil {
+				log.Printf("avatar save: os.Create error: %v\n", err)
+				http.Error(w, "could not save avatar file location", http.StatusInternalServerError)
+				return
+			}
+			defer dst.Close()
+			if _, err := io.Copy(dst, file); err != nil {
+				http.Error(w, "could not save avatar", http.StatusInternalServerError)
+				return
+			}
+			avatarURL = "/img/avatars/" + header.Filename
+		} else if err != http.ErrMissingFile {
+			// some other error reading the file
+			http.Error(w, "error reading avatar", http.StatusBadRequest)
 			return
 		}
-		defer dst.Close()
-		if _, err := io.Copy(dst, file); err != nil {
-			http.Error(w, "could not save avatar", http.StatusInternalServerError)
-			return
-		}
-		avatarURL = "/img/" + header.Filename
-	} else if err != http.ErrMissingFile {
-		// some other error
-		http.Error(w, "error reading avatar", http.StatusBadRequest)
-		return
+		// if ErrMissingFile → no new upload, avatarURL stays as existing.Avatar
 	}
-	// if no file sent, avatarURL remains existing.Avatar
 
 	// 4) read text fields, falling back on existing
 	get := func(key, old string) string {
