@@ -29,7 +29,7 @@ function submitProfile(username) {
             }
             editProfileMessage.textContent = 'Profile updated successfully!';
             editProfileMessage.className = 'message success';
-            window.location.href = '/editProfile';  // Redirect to the same page to refresh the profile data
+            fetchUserProfile(username);
         })
         .catch(err => {
             editProfileMessage.textContent = 'Error updating profile: ' + err.message;

@@ -62,7 +62,7 @@ export default function TheirProfile() {
               id='avatar'
             />
             <div className="follow">
-              <p id="profileUsername">Username</p>
+              <p id="profileUsername"></p>
               <p>Followers: <span id="userFollowers">0</span></p>
               <p>Following: <span id="userFollowing">0</span></p>
             </div>

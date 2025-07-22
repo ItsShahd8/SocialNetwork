@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 )
@@ -98,32 +99,56 @@ func UpdateProfileHandler(db *sql.DB, w http.ResponseWriter, r *http.Request, cu
 	// 3a) reset flag takes highest precedence
 	if r.FormValue("resetAvatar") == "true" {
 		avatarURL = "/img/images.png"
+
 	} else {
 		// 3b) otherwise, check for a new upload
 		file, header, err := r.FormFile("avatarInput")
-		safeName := strings.ReplaceAll(header.Filename, " ", "-")
-		header.Filename = safeName
-
-		if err == nil {
-			defer file.Close()
-			dst, err := os.Create("../../../frontend-next/public/img/avatars/" + header.Filename)
-			if err != nil {
-				log.Printf("avatar save: os.Create error: %v\n", err)
-				http.Error(w, "could not save avatar file location", http.StatusInternalServerError)
-				return
-			}
-			defer dst.Close()
-			if _, err := io.Copy(dst, file); err != nil {
-				http.Error(w, "could not save avatar", http.StatusInternalServerError)
-				return
-			}
-			avatarURL = "/img/avatars/" + header.Filename
-		} else if err != http.ErrMissingFile {
-			// some other error reading the file
+		if err != nil && err != http.ErrMissingFile {
 			http.Error(w, "error reading avatar", http.StatusBadRequest)
 			return
 		}
-		// if ErrMissingFile → no new upload, avatarURL stays as existing.Avatar
+
+		// no file at all (or empty filename) → keep existing
+		if err == http.ErrMissingFile || header.Filename == "" {
+			avatarURL = existing.Avatar
+
+		} else {
+			// sanitize filename
+			safeName := strings.ReplaceAll(header.Filename, " ", "-")
+			ext := strings.ToLower(filepath.Ext(safeName))
+			if ext != ".png" && ext != ".jpg" && ext != ".jpeg" {
+				http.Error(w, "Image must be a PNG or JPG.", http.StatusBadRequest)
+				return
+			}
+
+			// build and create upload directory
+			uploadDir := filepath.Join("..", "frontend-next", "public", "img", "avatars")
+			if err := os.MkdirAll(uploadDir, os.ModePerm); err != nil {
+				log.Println("avatar save: MkdirAll error:", err)
+				http.Error(w, "could not save avatar", http.StatusInternalServerError)
+				return
+			}
+
+			// write the file
+			dstPath := filepath.Join(uploadDir, safeName)
+			dst, err := os.Create(dstPath)
+			if err != nil {
+				log.Println("avatar save: Create error:", err)
+				http.Error(w, "could not save avatar", http.StatusInternalServerError)
+				return
+			}
+			defer dst.Close()
+			defer file.Close()
+
+			if _, err := io.Copy(dst, file); err != nil {
+				log.Println("avatar save: Copy error:", err)
+				http.Error(w, "could not save avatar", http.StatusInternalServerError)
+				return
+			}
+
+			// set the URL that your frontend FileServer will serve
+			avatarURL = "/img/avatars/" + safeName
+		}
 	}
 
 	// 4) read text fields, falling back on existing

@@ -23,6 +23,7 @@ type Post struct {
 
 // CreatePost handles post submission
 func CreatePost(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -64,7 +65,7 @@ func CreatePost(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 
 		// generate a safe filename
 		fname := strings.ReplaceAll(header.Filename, " ", "-")
-		dstFile, err := os.Create("../../../frontend-next/public/img/posts/" + fname)
+		dstFile, err := os.Create("../frontend-next/public/img/posts/" + fname)
 		if err != nil {
 			log.Println("file create error:", err)
 			http.Error(w, "Server error", http.StatusInternalServerError)

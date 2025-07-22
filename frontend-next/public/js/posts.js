@@ -300,6 +300,11 @@ function loadTheirProfile(username, myUsername) {
         .then(data => {
             const { profile, posts } = data;
 
+            const profileUsername = document.getElementById('profileUsername');
+            if (profileUsername) {
+                profileUsername.innerHTML = profile.username || 'No username available.';
+            }
+
             // Update bio
             const profileBio = document.getElementById('profileBio');
             if (profileBio) {
