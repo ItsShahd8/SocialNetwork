@@ -3,11 +3,157 @@ body {
     font-family: 'Helvetica Neue', Arial, sans-serif;
     background-color: #ffffff;
     margin: 0;
-    padding: 20px;
+    padding: 0;
     display: flex;
     flex-direction: column;
     width: auto;
     justify-content: center;
+}
+
+/* Navigation Bar Styles */
+.navbar {
+    background-color: #4267B2;
+    color: white;
+    padding: 1rem 0;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.nav-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 2rem;
+}
+
+.nav-logo a {
+    color: white;
+    text-decoration: none;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.nav-menu {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+}
+
+.nav-link {
+    color: white;
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.nav-link.active {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.logout-btn {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.logout-btn:hover {
+    background-color: #c82333;
+}
+
+/* Button Styles */
+.btn {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    text-align: center;
+    transition: all 0.3s ease;
+    line-height: 1.5;
+}
+
+.btn-primary {
+    background-color: #1da1f2;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #1991db;
+}
+
+.btn-secondary {
+    background-color: #657786;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background-color: #546e7a;
+}
+
+.btn-success {
+    background-color: #17bf63;
+    color: white;
+}
+
+.btn-success:hover:not(:disabled) {
+    background-color: #14a653;
+}
+
+.btn-success:disabled {
+    background-color: #a8e6cf;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.btn-danger {
+    background-color: #e0245e;
+    color: white;
+}
+
+.btn-danger:hover {
+    background-color: #c91e4a;
+}
+
+.btn-warning {
+    background-color: #ff9500;
+    color: white;
+}
+
+.btn-warning:hover:not(:disabled) {
+    background-color: #e6830e;
+}
+
+.btn-warning:disabled {
+    background-color: #ffb84d;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+/* Main Content */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
 }
 
 .mainPage,
@@ -577,18 +723,4 @@ input[type="submit"]:hover {
 #followButton {
     margin-bottom: 20px;
     max-width: 200px;
-}
-
-
-.comment-post .img-post {
-  width: 100%;            /* fill the width of .comment-post */
-  max-height: 500px;      /* optional: limit how tall the image area can get */
-  overflow: auto;       /* crop anything that hangs outside */
-}
-
-.comment-post .img-post img {
-  display: block;         /* removes inline-img whitespace */
-  width: 100%;            /* scale to container’s width */
-  height: auto;           /* keep aspect ratio */
-  object-fit: cover;      /* if you fix height, this crops to fill */
 }

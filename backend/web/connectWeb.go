@@ -4,19 +4,20 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"strings"
-
 	"net/http"
+	"strconv"
+	"strings"
+	"time"
+
 	cor "socialnetwork/pkg/apis"
 	"socialnetwork/pkg/apis/chat"
 	e "socialnetwork/pkg/apis/error"
+	g "socialnetwork/pkg/apis/group"
 	"socialnetwork/pkg/apis/like"
 	likerepo "socialnetwork/pkg/apis/like/repo"
 	p "socialnetwork/pkg/apis/post"
 	u "socialnetwork/pkg/apis/user"
 	database "socialnetwork/pkg/db"
-	"strconv"
-	"time"
 )
 
 type Page struct {
@@ -36,26 +37,21 @@ func ConnectWeb(db *sql.DB) {
 	// }
 
 	http.HandleFunc("/signup", cor.WithCORS(func(w http.ResponseWriter, r *http.Request) {
-
 		if r.Method == http.MethodPost {
 			u.Register(db, w, r) // Call the user registration function
 			return
 		}
-
 	}))
 
 	http.HandleFunc("/login", cor.WithCORS(func(w http.ResponseWriter, r *http.Request) {
-
 		u.Login(db, w, r) // Call the Login function from Register.go
 	}))
 
 	http.HandleFunc("/get-posts", cor.WithCORS(func(w http.ResponseWriter, r *http.Request) {
-
 		p.GetPosts(db, w, r)
 	}))
 
 	http.HandleFunc("/get-myPosts", cor.WithCORS(func(w http.ResponseWriter, r *http.Request) {
-
 		userID, loggedIn := u.ValidateSession(db, r)
 		if !loggedIn {
 			http.Error(w, "Unauthorized. Please log in.", http.StatusUnauthorized)
@@ -73,7 +69,6 @@ func ConnectWeb(db *sql.DB) {
 	}))
 
 	http.HandleFunc("/get-otherPosts/", cor.WithCORS(func(w http.ResponseWriter, r *http.Request) {
-
 		_, loggedIn := u.ValidateSession(db, r)
 		if !loggedIn {
 			http.Error(w, "Unauthorized. Please log in.", http.StatusUnauthorized)
@@ -184,7 +179,6 @@ func ConnectWeb(db *sql.DB) {
 		fmt.Println(username)
 
 		u.GetProfileHandler(db, w, r, username)
-
 	}))
 
 	http.HandleFunc("/editPost/", cor.WithCORS(func(w http.ResponseWriter, r *http.Request) {
@@ -196,7 +190,40 @@ func ConnectWeb(db *sql.DB) {
 		fmt.Println(username)
 
 		u.UpdateProfileHandler(db, w, r, username)
+	}))
 
+	// Group API endpoints
+	http.HandleFunc("/create-group", cor.WithCORS(func(w http.ResponseWriter, r *http.Request) {
+		g.CreateGroup(db, w, r)
+	}))
+
+	http.HandleFunc("/get-groups", cor.WithCORS(func(w http.ResponseWriter, r *http.Request) {
+		g.GetGroups(db, w, r)
+	}))
+
+	http.HandleFunc("/get-user-groups", cor.WithCORS(func(w http.ResponseWriter, r *http.Request) {
+		g.GetUserGroups(db, w, r)
+	}))
+
+	http.HandleFunc("/group-details/", cor.WithCORS(func(w http.ResponseWriter, r *http.Request) {
+		groupIDStr := strings.TrimPrefix(r.URL.Path, "/group-details/")
+		g.GetGroupDetails(db, w, r, groupIDStr)
+	}))
+
+	http.HandleFunc("/invite-to-group", cor.WithCORS(func(w http.ResponseWriter, r *http.Request) {
+		g.InviteUserToGroup(db, w, r)
+	}))
+
+	http.HandleFunc("/respond-group-invitation", cor.WithCORS(func(w http.ResponseWriter, r *http.Request) {
+		g.RespondToGroupInvitation(db, w, r)
+	}))
+
+	http.HandleFunc("/request-join-group", cor.WithCORS(func(w http.ResponseWriter, r *http.Request) {
+		g.RequestToJoinGroup(db, w, r)
+	}))
+
+	http.HandleFunc("/get-group-invitations", cor.WithCORS(func(w http.ResponseWriter, r *http.Request) {
+		g.GetGroupInvitations(db, w, r)
 	}))
 
 	http.HandleFunc("/check-session", cor.WithCORS(func(w http.ResponseWriter, r *http.Request) {
@@ -285,7 +312,6 @@ func ConnectWeb(db *sql.DB) {
 			messages = []chat.Frontend{}
 		}
 		json.NewEncoder(w).Encode(messages)
-
 	}))
 
 	http.HandleFunc("/get-users", cor.WithCORS(func(w http.ResponseWriter, r *http.Request) {
@@ -326,7 +352,6 @@ func ConnectWeb(db *sql.DB) {
 			w.Header().Set("Content-Type", "application/json")
 			json.NewEncoder(w).Encode(users)
 		}
-
 	}))
 
 	http.HandleFunc("/error/", cor.WithCORS(func(w http.ResponseWriter, r *http.Request) {
@@ -341,7 +366,6 @@ func ConnectWeb(db *sql.DB) {
 			return
 		}
 		e.ErrorHandler(w, r, num)
-
 	}))
 
 	fmt.Println("Listening on: http://localhost:8080/")
