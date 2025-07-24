@@ -28,12 +28,12 @@ function checkSession() {
                 currentusername = data.username;
                 
                 if (window.location.pathname === "/index" || window.location.pathname === "/") {
-                    if (signUpButton) signUpButton.style.display = "none";
-                    if (logInButton) logInButton.style.display = "none";
+                    if (signUpButton) signUpButton.hidden = true;
+                    if (logInButton) logInButton.hidden = true;
                 }
                 if(show) show.hidden = false;
-                if (postsButton) postsButton.style.display = "inline-block";
-                if (logoutButton) {logoutButton.style.display = "inline-block";
+                if (postsButton) postsButton.style.hidden = false;
+                if (logoutButton) {logoutButton.style.hidden = false;
                     logoutButton.addEventListener('click', logout);
                 }
 
@@ -41,13 +41,13 @@ function checkSession() {
                 console.log(" User is not logged in.");
 
                 if (window.location.pathname === "/index" || window.location.pathname === "/") {
-                    if (signUpButton) signUpButton.style.display = "inline-block";
-                    if (logInButton) logInButton.style.display = "inline-block";
+                    if (signUpButton) signUpButton.hidden = false;
+                    if (logInButton) logInButton.hidden = false;
                 }
 
-                if (logoutButton) logoutButton.style.display = "none";
-                if (postsButton) postsButton.style.display = "none";
-                if (groupsButton) groupsButton.style.display = "none";
+                if (logoutButton) logoutButton.hidden = true;
+                if (postsButton) postsButton.hidden = true;
+                if (groupsButton) groupsButton.hidden = true;
                 if(show) show.hidden = true;
                 if (
                     window.location.pathname !== "/index" &&

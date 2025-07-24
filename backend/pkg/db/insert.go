@@ -34,7 +34,7 @@ func InsertCategory(db *sql.DB, name string) (int, error) {
 
 func InsertPost(db *sql.DB, user_id int, title, content, imgOrgif string) (int64, time.Time, error) {
 	query := `INSERT INTO posts (user_id, title, content,imgOrgif) VALUES (?, ?, ?,?)`
-	result, err := db.Exec(query, user_id, title, content,imgOrgif)
+	result, err := db.Exec(query, user_id, title, content, imgOrgif)
 	if err != nil {
 		return -1, time.Time{}, err
 	}
@@ -61,11 +61,11 @@ func InsertPostCategory(db *sql.DB, postID int, categoryID int) error {
 	return err
 }
 
-func InsertComment(db *sql.DB, postID, userID int, content string) (int64, time.Time, error) {
-	query := `INSERT INTO comments (post_id, user_id, content) VALUES (?, ?, ?)`
+func InsertComment(db *sql.DB, postID, userID int, content, imgOrgif string) (int64, time.Time, error) {
+	query := `INSERT INTO comments (post_id, user_id, content, imgOrgif) VALUES (?, ?, ?, ?)`
 
 	// Execute the insert query
-	result, err := db.Exec(query, postID, userID, content)
+	result, err := db.Exec(query, postID, userID, content, imgOrgif)
 	if err != nil {
 		return -1, time.Time{}, err
 	}

@@ -1,21 +1,17 @@
 //  Comments.js - Handles loading and posting comments for a specific post
-const commentsSection = document.getElementById("commentsSection");
 let thisPostId = 0; // Initialize thisPostId to 0
- if (window.location.pathname === "/comments") {
-     const params = new URLSearchParams(window.location.search);
-    thisPostId = parseInt(params.get('post_id'));
-     console.log("Post ID from URL:", thisPostId);
-     console.log(" Document loaded, loading comments for post ID:", thisPostId);
-        loadCommentsForPost();
-    }
+
 document.addEventListener("DOMContentLoaded", function () {
     if (window.location.pathname === "/comments") {
-        loadCommentsForPost();
+        const params = new URLSearchParams(window.location.search);
+        thisPostId = parseInt(params.get('post_id'));
+        console.log("Post ID from URL:", thisPostId);
+        console.log(" Document loaded, loading comments for post ID:", thisPostId);
+        loadCommentsForPost(thisPostId);
     }
-
 });
 
-function loadCommentsForPost() {
+function loadCommentsForPost(thisPostId) {
     fetch(`http://localhost:8080/comments?post_id=${thisPostId}`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
@@ -34,6 +30,8 @@ function loadCommentsForPost() {
         .then(parsedResponse => {
             console.log(" Server Response:", parsedResponse);
 
+            const commentsSection = document.getElementById("commentsSection");
+
             if (parsedResponse.error) {
                 console.error(" Server Error:", parsedResponse.error);
                 commentsSection.innerHTML = `<p>Error loading comments: ${parsedResponse.error}</p>`;
@@ -41,6 +39,7 @@ function loadCommentsForPost() {
             }
 
             const post = parsedResponse.post;
+            post.imgOrgif = post.imgOrgif ? `<img src="${post.imgOrgif}" alt="Post Image">` : '';
             const comments = parsedResponse.comments;
 
             commentsSection.innerHTML = `
@@ -48,14 +47,19 @@ function loadCommentsForPost() {
         <div class="comment-post">
             <h2>${post.title}</h2>
             <p>${post.content}</p>
+            ${post.imgOrgif}
             <small>Posted by <strong>${post.username}</strong> on ${post.createdAt} - ${post.categories.join(', ')} </small>
         </div>
         <div class="container-about">
             <h2>Comments</h2>
             <div id="commentsList"></div><br><br>
-            <form id="commentForm">
-                <textarea id="commentText" name="comment" placeholder="Write your comment here..." required></textarea><br>
-                <input type="hidden" id="postID" value="${thisPostId}">
+            <form id="commentForm" encType="multipart/form-data">
+                <textarea id="commentText" name="comment" placeholder="Write your comment here..."></textarea>
+                <input
+              type="file"
+              id="imgOrgif"
+              name="imgOrgif"
+            /><br>
                 <button id="sendCommentButton" class="button-main" type="submit">Post Comment</button>
             </form>
         </div>
@@ -64,17 +68,22 @@ function loadCommentsForPost() {
 
             const commentsList = document.getElementById("commentsList");
 
-            if (comments.length === 0) {
+            if ( comments === undefined || comments === null) {
                 commentsList.innerHTML = "<p>No comments available for this post.</p>";
             } else {
                 comments.forEach(comment => {
                     console.log(" Loaded Comment ID:", comment.id);
 
                     let formattedDate = new Date(comment.created_at).toLocaleString();
+                    const imgorgif = comment.imgOrgif ? `<img src="${comment.imgOrgif}" alt="Comment Image">` : '';
+                    console.log(" Comment Image:", comment.imgOrgif);
 
                     commentsList.innerHTML += `
                 <div id="comment-${comment.id}">
                     <p><strong>${comment.username}:</strong> ${comment.content}
+                    <div class="post-image">
+            ${imgorgif}
+            </div>
                     <small>${formattedDate}</small></p>
                     <span class="material-icons" id="likeComment${comment.id}" onclick="likeDislikeComment(${comment.id}, true)"> thumb_up </span>
                     <span id="likesCountComment${comment.id}">0</span>
@@ -100,43 +109,31 @@ function loadCommentsForPost() {
             document.getElementById('commentForm').addEventListener('submit', function (event) {
                 event.preventDefault();  //  Prevent default form submission
 
-                const commentText = document.getElementById("commentText").value.trim();
-                const postID = document.getElementById("postID").value;
-                if (!commentText) {
-                    console.log(" Comment cannot be empty.");
-                    return;
-                }
+                const form = document.getElementById('commentForm'); // the <form id="commentForm">
+                const formData = new FormData(form);
+                formData.append('post_id', thisPostId); // Add post_id to the form data
 
-                const requestBody = JSON.stringify({ post_id: parseInt(postID), content: commentText });
+                console.log(" Form Data:", formData);
 
-                console.log(" Sending JSON Data:", requestBody);
 
                 fetch("http://localhost:8080/create-comment", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    credentials: "include",
-                    body: requestBody
+                    method: 'POST',
+                    credentials: 'include',
+                    body: formData
                 })
-                    .then(response => response.json())
+                    .then(res => res.json())
                     .then(data => {
-                        console.log(" Server Response:", data);
-
+                        console.log("Server response:", data);
                         if (data.success) {
-                            //  Clear input field
-                            document.getElementById("commentText").value = "";
-
-                            //  Reload comments without redirecting
-                            loadCommentsForPost(thisPostId);
+                            // reset inputs
+                            form.reset();
+                            loadCommentsForPost(thisPostId); // reload
+                            // notify via WebSocket if desired…
                         } else {
-                            console.log(" Error: " + data.message);
+                            console.error("Error:", data.message);
                         }
-                        console.log(" Comment ID:", data.comment_id);
-                        const socket = window.getSocket?.();
-            
-                         socket.send(JSON.stringify({ type: "new_comment" , post_id: parseInt(thisPostId) , comment_id: data.comment_id}));
-
                     })
-                    .catch(error => console.log(error));
+                    .catch(console.error);
             });
 
         })

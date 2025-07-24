@@ -129,7 +129,7 @@ func GetCategoriesByPostID(db *sql.DB, postID int) ([]string, error) {
 
 func GetPostByPostID(db *sql.DB, postID int) ([]map[string]interface{}, error) {
 	query := `
-	SELECT p.id, u.username, p.title, p.content, p.created_at 
+	SELECT p.id, u.username, p.title, p.content,p.imgOrgif, p.created_at 
 	FROM posts p
 	JOIN users u ON p.user_id = u.id 
 	WHERE p.id = ?`
@@ -143,10 +143,10 @@ func GetPostByPostID(db *sql.DB, postID int) ([]map[string]interface{}, error) {
 	var posts []map[string]interface{}
 	for rows.Next() {
 		var postID int
-		var username, title, content string
+		var username, title, content, imgOrgif string
 		var createdAt time.Time
 
-		err := rows.Scan(&postID, &username, &title, &content, &createdAt)
+		err := rows.Scan(&postID, &username, &title, &content, &imgOrgif, &createdAt)
 		if err != nil {
 			fmt.Println(" Error scanning post:", err)
 			return nil, err
@@ -165,6 +165,7 @@ func GetPostByPostID(db *sql.DB, postID int) ([]map[string]interface{}, error) {
 			"username":   username,
 			"title":      title,
 			"content":    content,
+			"imgOrgif":   imgOrgif,
 			"categories": categories, //  Include categories
 			"createdAt":  createdAt.Format("2006-01-02 15:04:05"),
 		}
@@ -298,10 +299,10 @@ func GetPostIfLiked(db *sql.DB, userID int) ([]map[string]interface{}, error) {
 	var posts []map[string]interface{}
 	for rows.Next() {
 		var postID int
-		var username, title, content,imgOrgif string
+		var username, title, content, imgOrgif string
 		var createdAt time.Time
 
-		err := rows.Scan(&postID, &username, &title, &content,&imgOrgif, &createdAt)
+		err := rows.Scan(&postID, &username, &title, &content, &imgOrgif, &createdAt)
 		if err != nil {
 			return nil, fmt.Errorf("error scanning post: %w", err)
 		}
