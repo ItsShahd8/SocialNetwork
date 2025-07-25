@@ -3,8 +3,8 @@ import Script from 'next/script'
 import { useEffect, useState } from 'react'
 
 // Fetch profile data and follow state on each request using dynamic route param
-export async function getServerSideProps({ params, req }) {
-  const { user } = params
+export async function getServerSideProps({ query, req }) {
+  const { user } = query
   const cookie = req.headers.cookie || ''
 
   // 1) Fetch profile and counts from Go backend
@@ -50,7 +50,7 @@ export default function TheirProfile({ profile, isFollowing: initialFollow }) {
   return (
     <>
       <Head>
-        <title>{profile.username} – Profile</title>
+        <title>{profile.username} –  Profile</title>
         <meta charSet="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <link rel="stylesheet" href="/css/style.css" />
@@ -61,6 +61,7 @@ export default function TheirProfile({ profile, isFollowing: initialFollow }) {
         <script src="/js/likes.js" defer></script>
         <script src="/js/comments.js" defer></script>
         <script src="/js/chat.js" defer></script>
+
       </Head>
 
       <Script src="/js/follow.js" strategy="afterInteractive" />
@@ -91,6 +92,8 @@ export default function TheirProfile({ profile, isFollowing: initialFollow }) {
       </section>
 
       <section id="theirProfilePageSection">
+      <div className="container-main">
+        <button className="return-button">Return</button>
         <div className="profile-top">
           <img src="/css/logo.png" alt="Logo" />
           <div className="follow">
@@ -100,24 +103,20 @@ export default function TheirProfile({ profile, isFollowing: initialFollow }) {
           </div>
         </div>
 
-        <button
-          id="followButton"
-          className="button-main"
-        >
-          {initialFollow ? 'Unfollow' : 'Follow'}
+        <button id="followButton" data-profile-id="${profile.id}" data-following="${isFollowing}" className="button-main">
+          ${isFollowing ? 'Unfollow' : 'Follow'}
         </button>
 
         <div>
-          <p id="profileBio" className="bio">{profile.bio}</p>
+          <p className="bio">${profile.bio}</p>
         </div>
 
         <section id="postPageSection">
-            
-            <div className="container-theirProfilePost">
-              <div id="postsContainer"></div>
-            </div>
-          </section>
-      </section>
+          <div className="container-theirProfilePost">
+          </div>
+        </section>
+      </div>
+    </section>
     </>
   )
 }

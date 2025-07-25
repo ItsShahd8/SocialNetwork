@@ -72,7 +72,6 @@ export default function MyProfile() {
           <section id="postPageSection">
             <button className="button-create" onClick={() => window.location.href = '/createPost'}>Create Post</button>
             <div className="container-profilePost">
-              <div id="postsContainer"></div>
             </div>
           </section>
         </div>

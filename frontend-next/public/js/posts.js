@@ -42,7 +42,7 @@ function loadPosts() {
                 <p>${post.content}</p>
                 <small>
                 Posted by 
-                <button onclick="window.location.href='/theirProfile/${encodeURIComponent(post.username)}'">${post.username}</button>
+                <button onclick="window.location.href='/theirProfile?user=${encodeURIComponent(post.username)}'">${post.username}</button>
                 on ${post.createdAt}
                 </small>
                 <br>
@@ -118,7 +118,7 @@ function loadMyPosts(myUsername) {
                         <p>${post.content}</p>
                         <small>
                         Posted by 
-                        <button onclick="window.location.href='/theirProfile/${encodeURIComponent(post.username)}'">${post.username}</button>
+                        <button onclick="window.location.href='/theirProfile?user=${encodeURIComponent(post.username)}'">${post.username}</button>
                         on ${post.createdAt}
                         </small>
                         <br>
@@ -219,7 +219,7 @@ function loadCategoryPosts(category) {
                 <p>${post.content}</p>
                 <small>
                 Posted by 
-                <button onclick="window.location.href='/theirProfile/${encodeURIComponent(post.username)}'">${post.username}</button>
+                <button onclick="window.location.href='/theirProfile?user=${encodeURIComponent(post.username)}'">${post.username}</button>
                 on ${post.createdAt}
                 </small>
                 <br>
@@ -299,7 +299,7 @@ function loadTheirProfile(username, myUsername) {
                 <p>${post.content}</p>
                 <small>
                     Posted by 
-                    <button onclick="window.location.href='/theirProfile/${encodeURIComponent(post.username)}'">${post.username}</button> 
+                    <button onclick="window.location.href='/theirProfile?user=${encodeURIComponent(post.username)}'">${post.username}</button> 
                     on ${post.createdAt}
                 </small><br>
                 <small>Category: ${post.categories.join(", ")}</small>
@@ -363,7 +363,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (path.includes( '/theirProfile')) {
-            const theirUsername = window.location.pathname.split('/theirProfile/')[1]
+            const params = new URLSearchParams(window.location.search);
+            const theirUsername = params.get('user');
             console.log("Username from URL:", theirUsername);
 
             if (!theirUsername) {

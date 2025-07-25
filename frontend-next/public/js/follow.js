@@ -1,6 +1,6 @@
 // public/js/follow.js
 
-(function() {
+(function () {
   const btn = document.getElementById('followButton');
   if (!btn) return;
 
