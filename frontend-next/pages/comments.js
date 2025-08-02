@@ -1,6 +1,13 @@
 import Head from 'next/head';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+
 export default function Comments() {
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true); // Only true on client after hydration
+  }, []);
+
   return (
     <>
       <Head>
@@ -13,13 +20,13 @@ export default function Comments() {
         <script src="/js/likes.js" defer></script>
         <script src="/js/chat.js" defer></script>
       </Head>
-      <section id="show">
 
+      <section id="show">
         <div className="sidebar-post right-sidebar">
           <br />
           <button id="logoutButton" className="button-side" onClick={() => logout()}>Logout</button>
           <br />
-          <button onClick={() => window.history.back()} className="button-side" >Return</button>
+          <button onClick={() => window.history.back()} className="button-side">Return</button>
           <br />
           <button onClick={() => window.location.href = '/'} className="button-side">Main</button>
           <br />
@@ -27,30 +34,25 @@ export default function Comments() {
         </div>
 
         <section className="chat-main" id="chat-main" hidden>
-
           <div className="chat-header">
             <h3 id="chatWithLabel">Chat</h3>
             <button id="closeChatButton" className="close-chat-button">x</button>
           </div>
 
-          <div id="chatWindow" className="chat-window">
-          </div>
+          <div id="chatWindow" className="chat-window"></div>
 
           <form id="chatForm" encType="multipart/form-data">
             <input type="text" id="chatInput" placeholder="Type a message..." />
-            <input
-              type="file"
-              id="imgOrgif"
-              name="imgOrgif"
-            /> 
+            <input type="file" id="chatImgOrgif" name="imgOrgif" />
             <button type="submit" className="button-main">Send</button>
           </form>
-
         </section>
       </section>
 
-      <section id="commentsSection">
-      </section>
+
+      {isClient && (
+        <section id="commentsSection"></section>
+      )}
     </>
   );
 }

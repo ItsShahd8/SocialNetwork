@@ -3,6 +3,7 @@ package post
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -10,26 +11,28 @@ import (
 	"path/filepath"
 	u "socialnetwork/pkg/apis/user"
 	database "socialnetwork/pkg/db"
+	"strconv"
 	"strings"
 )
 
-// Post structure
+// Post structure with privacy
 type Post struct {
-	Title      string   `json:"title"`
-	Content    string   `json:"content"`
-	ImgOrGif   string   `json:"imgOrgif"`
-	Categories []string `json:"categories"`
+	Title             string   `json:"title"`
+	Content           string   `json:"content"`
+	ImgOrGif          string   `json:"imgOrgif"`
+	Categories        []string `json:"categories"`
+	PrivacyLevel      int      `json:"privacy_level"` // 0=public, 1=followers, 2=selected
+	SelectedFollowers []int    `json:"selected_followers"`
 }
 
-// CreatePost handles post submission
+// CreatePost handles post submission with privacy
 func CreatePost(db *sql.DB, w http.ResponseWriter, r *http.Request) {
-
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
-	// 1) validate session
+	// Validate session and get user ID
 	userID, loggedIn := u.ValidateSession(db, r)
 	if !loggedIn {
 		http.Error(w, "Unauthorized. Please log in.", http.StatusUnauthorized)
@@ -48,6 +51,12 @@ func CreatePost(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	if title == "" || content == "" {
 		http.Error(w, "Title and Content cannot be empty.", http.StatusBadRequest)
 		return
+	}
+
+	privacyLevel, _ := strconv.Atoi(r.FormValue("privacy_level"))
+	// Validate privacy level
+	if privacyLevel < 0 || privacyLevel > 2 {
+		privacyLevel = 0 // Default to public
 	}
 
 	// 4) handle optional image upload
@@ -93,9 +102,10 @@ func CreatePost(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 6) insert the post record
-	postID, createdAt, err := database.InsertPost(db, userID, title, content, imgOrGif)
+	// Insert the post into the database with privacy
+	postID, createdAt, err := database.InsertPostWithPrivacy(db, userID, title, content, imgOrGif, privacyLevel)
 	if err != nil {
-		log.Println("InsertPost error:", err)
+		fmt.Println("Error inserting post:", err)
 		http.Error(w, "Failed to create post", http.StatusInternalServerError)
 		return
 	}
@@ -115,13 +125,65 @@ func CreatePost(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// 8) success
-	resp := map[string]interface{}{
-		"success":   true,
-		"message":   "Post created successfully.",
-		"postID":    postID,
-		"createdAt": createdAt,
+	selectedFollowersStr := r.MultipartForm.Value["selected_followers"]
+	var selectedFollowersInt []int
+
+	for _, strID := range selectedFollowersStr {
+		id, err := strconv.Atoi(strID)
+		if err != nil {
+			// handle the error appropriately, maybe skip or log
+			continue
+		}
+		selectedFollowersInt = append(selectedFollowersInt, id)
 	}
+	// Handle private post permissions (privacy level 2)
+	if privacyLevel == 2 && len(selectedFollowersInt) > 0 {
+		err = database.AddPostPermissions(db, int(postID), selectedFollowersInt)
+		if err != nil {
+			fmt.Println("Error adding post permissions:", err)
+			http.Error(w, "Failed to set post permissions", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	// Send success response
+	response := map[string]interface{}{
+		"success":       true,
+		"message":       "Post created successfully.",
+		"postID":        postID,
+		"createdAt":     createdAt,
+		"privacy_level": privacyLevel,
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(resp)
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(response)
+}
+
+// GetUserFollowers returns followers for post privacy selection
+func GetUserFollowers(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Validate session
+	userID, loggedIn := u.ValidateSession(db, r)
+	if !loggedIn {
+		http.Error(w, "Unauthorized. Please log in.", http.StatusUnauthorized)
+		return
+	}
+
+	// Get followers
+	followers, err := database.GetUserFollowers(db, userID)
+	if err != nil {
+		fmt.Println("Error getting followers:", err)
+		http.Error(w, "Failed to get followers", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"followers": followers,
+	})
 }

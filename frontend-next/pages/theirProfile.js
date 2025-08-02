@@ -3,7 +3,7 @@ import Head from 'next/head';
 export default function TheirProfile() {
 
   return (
-    { ssr: false },
+
     <>
       <Head>
         <title>Welcome Page</title>
@@ -56,13 +56,13 @@ export default function TheirProfile() {
         <div className="container-main">
           <div className="profile-top">
             <img
-              src="/img/avatarsimages.png"
+              src="/img/avatars/images.png"
               alt="Avatar"
               className="avatar-preview"
               id='avatar'
             />
             <div className="follow">
-              <p id="profileUsername"></p>
+              <p id="profileUsername">Unknown</p>
               <p>Followers: <span id="userFollowers">0</span></p>
               <p>Following: <span id="userFollowing">0</span></p>
             </div>

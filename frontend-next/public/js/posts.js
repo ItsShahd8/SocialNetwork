@@ -1,6 +1,4 @@
 // posts.js
-// const createPostButton = document.getElementById('createPostButton');
-// const categoryButtons = document.querySelectorAll('#categoryOptions .button-side');
 const profilePageButton = document.getElementById('profilePageButton');
 const postsButton = document.getElementById('postsButton');
 
@@ -91,7 +89,7 @@ function loadMyPosts(myUsername) {
         return;
     }
     const myProfileUsername = document.getElementById('myProfileUsername');
-    myProfileUsername.innerHTML = myUsername;
+    myProfileUsername.innerText = myUsername;
 
     fetch('http://localhost:8080/get-myPosts', {
         method: 'GET',
@@ -281,7 +279,7 @@ function loadTheirProfile(username, myUsername) {
         return;
     }
     const profileUsername = document.getElementById('profileUsername');
-    profileUsername.textContent = username;
+    profileUsername.value = username;
     fetch('http://localhost:8080/get-otherPosts/' + username, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },

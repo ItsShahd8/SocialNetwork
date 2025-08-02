@@ -3,13 +3,19 @@ let thisPostId = 0; // Initialize thisPostId to 0
 
 document.addEventListener("DOMContentLoaded", function () {
     if (window.location.pathname === "/comments") {
-        const params = new URLSearchParams(window.location.search);
-        thisPostId = parseInt(params.get('post_id'));
-        console.log("Post ID from URL:", thisPostId);
-        console.log(" Document loaded, loading comments for post ID:", thisPostId);
-        loadCommentsForPost(thisPostId);
+        const interval = setInterval(() => {
+            const section = document.getElementById("commentsSection");
+            if (section) {
+                clearInterval(interval); // stop checking
+                const params = new URLSearchParams(window.location.search);
+                const thisPostId = parseInt(params.get('post_id'));
+                console.log("Loading comments for post:", thisPostId);
+                loadCommentsForPost(thisPostId);
+            }
+        }, 100); // check every 100ms until the section is rendered
     }
 });
+
 
 function loadCommentsForPost(thisPostId) {
     fetch(`http://localhost:8080/comments?post_id=${thisPostId}`, {
@@ -43,7 +49,6 @@ function loadCommentsForPost(thisPostId) {
             const comments = parsedResponse.comments;
 
             commentsSection.innerHTML = `
-
         <div class="comment-post">
             <h2>${post.title}</h2>
             <p>${post.content}</p>
@@ -52,7 +57,8 @@ function loadCommentsForPost(thisPostId) {
         </div>
         <div class="container-about">
             <h2>Comments</h2>
-            <div id="commentsList"></div><br><br>
+            <div id="commentsList"></div><br>
+            <p id="errorMessage"></p>
             <form id="commentForm" encType="multipart/form-data">
                 <textarea id="commentText" name="comment" placeholder="Write your comment here..."></textarea>
                 <input
@@ -68,7 +74,7 @@ function loadCommentsForPost(thisPostId) {
 
             const commentsList = document.getElementById("commentsList");
 
-            if ( comments === undefined || comments === null) {
+            if (comments === undefined || comments === null) {
                 commentsList.innerHTML = "<p>No comments available for this post.</p>";
             } else {
                 comments.forEach(comment => {
@@ -109,7 +115,37 @@ function loadCommentsForPost(thisPostId) {
             document.getElementById('commentForm').addEventListener('submit', function (event) {
                 event.preventDefault();  //  Prevent default form submission
 
-                const form = document.getElementById('commentForm'); // the <form id="commentForm">
+                const form = event.target;
+                const commentText = form.querySelector('#commentText').value.trim();
+                const fileInput = form.querySelector('#imgOrgif');
+                const errorMessage = document.getElementById("errorMessage");
+
+                const hasText = commentText.length > 0;
+                const hasImage = fileInput && fileInput.files.length > 0;
+
+                // ✅ Validate: at least one of text or image is required
+                if (!hasText && !hasImage) {
+                    console.log(hasImage, hasText);
+                    errorMessage.innerText = "Please write a comment or upload an image.";
+                    errorMessage.style.color = "red";
+                    return;
+                }
+
+                // Optional: validate image type and size
+                if (hasImage) {
+                    const file = fileInput.files[0];
+                    const allowedTypes = ["image/png", "image/jpeg","image/jpg", "image/gif"];
+
+                    console.log("Selected file type:", file.type);
+
+                    if (!allowedTypes.includes(file.type)) {
+                        errorMessage.innerText = "Only PNG, JPG, or GIF images are allowed.";
+                        errorMessage.style.color = "red";
+                        return;
+                    }
+
+                }
+
                 const formData = new FormData(form);
                 formData.append('post_id', thisPostId); // Add post_id to the form data
 
@@ -124,23 +160,39 @@ function loadCommentsForPost(thisPostId) {
                     .then(res => res.json())
                     .then(data => {
                         console.log("Server response:", data);
+
                         if (data.success) {
-                            // reset inputs
+                            // Reset comment form
                             form.reset();
-                            loadCommentsForPost(thisPostId); // reload
-                            // notify via WebSocket if desired…
+                            loadCommentsForPost(thisPostId); // Reload updated comments
+                            // Optional: WebSocket notification here
                         } else {
+                            const errM = document.getElementById("errorMessage");
+                            if (errM) {
+                                errM.innerHTML = `<p>Error: ${data.message || 'Something went wrong'}</p>`;
+                                errM.style.color = "red";
+                            } else {
+                                console.error("Error message element not found in DOM.");
+                            }
                             console.error("Error:", data.message);
                         }
                     })
-                    .catch(console.error);
-            });
 
+                    .catch(err => {
+                        console.error("Network or server error:", err);
+                        const commentsSection = document.getElementById("commentsSection");
+                        if (commentsSection) {
+                            commentsSection.innerHTML = "<p style='color:red;'>Failed to submit comment. Please try again later.</p>";
+                        }
+                    });
+            });
         })
         .catch(error => {
-            console.error(" Error loading comments:", error);
-            commentsSection.innerHTML = "<p>Failed to load comments.</p>";
-            console.log(error)
+            console.error("Error fetching comments:", error);
+            const commentsSection = document.getElementById("commentsSection");
+            if (commentsSection) {
+                commentsSection.innerHTML = `<p style='color:red;'>Error loading comments: ${error.message}</p>`;
+            }
+
         });
 }
-
