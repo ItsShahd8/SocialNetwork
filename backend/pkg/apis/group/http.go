@@ -349,3 +349,47 @@ func GetGroupInvitations(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(invitations)
 }
+func GetGroupPosts(db *sql.DB, w http.ResponseWriter, r *http.Request, groupIDStr string) {
+	userID, loggedIn := u.ValidateSession(db, r)
+	if !loggedIn {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	groupID, err := database.ParseID(groupIDStr)
+	if err != nil {
+		http.Error(w, "Invalid group ID", http.StatusBadRequest)
+		return
+	}
+
+	isMember, err := database.IsGroupMember(db, groupID, userID)
+	if err != nil || !isMember {
+		http.Error(w, "Not a member of this group", http.StatusForbidden)
+		return
+	}
+
+	rows, err := db.Query("SELECT id, user_id, title, content, created_at FROM group_posts WHERE group_id = ?", groupID)
+	if err != nil {
+		http.Error(w, "Failed to load posts", http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	var posts []map[string]interface{}
+	for rows.Next() {
+		var id, userID int
+		var title, content, createdAt string
+		err := rows.Scan(&id, &userID, &title, &content, &createdAt)
+		if err == nil {
+			posts = append(posts, map[string]interface{}{
+				"id":         id,
+				"user_id":    userID,
+				"title":      title,
+				"content":    content,
+				"created_at": createdAt,
+			})
+		}
+	}
+
+	json.NewEncoder(w).Encode(map[string]interface{}{"posts": posts})
+}

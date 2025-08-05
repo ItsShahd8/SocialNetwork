@@ -212,3 +212,25 @@ func AddPostPermissions(db *sql.DB, postID int, userIDs []int) error {
 }
 
 
+// InsertGroupPost inserts a new post into a group
+func InsertGroupPost(db *sql.DB, groupID int, userID int, title string, content string) (int64, time.Time, error) {
+	query := `INSERT INTO group_posts (group_id, user_id, title, content) VALUES (?, ?, ?, ?)`
+	result, err := db.Exec(query, groupID, userID, title, content)
+	if err != nil {
+		return -1, time.Time{}, err
+	}
+
+	id, err := result.LastInsertId()
+	if err != nil {
+		return -1, time.Time{}, err
+	}
+
+	var createdAt time.Time
+	query = `SELECT created_at FROM group_posts WHERE id = ?`
+	err = db.QueryRow(query, id).Scan(&createdAt)
+	if err != nil {
+		return -1, time.Time{}, err
+	}
+
+	return id, createdAt, nil
+}

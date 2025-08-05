@@ -18,6 +18,7 @@ import (
 	p "socialnetwork/pkg/apis/post"
 	u "socialnetwork/pkg/apis/user"
 	database "socialnetwork/pkg/db"
+
 )
 
 type Page struct {
@@ -255,6 +256,17 @@ func ConnectWeb(db *sql.DB) {
 	http.HandleFunc("/get-group-invitations", cor.WithCORS(func(w http.ResponseWriter, r *http.Request) {
 		g.GetGroupInvitations(db, w, r)
 	}))
+
+	http.HandleFunc("/create-group-post", cor.WithCORS(func(w http.ResponseWriter, r *http.Request) {
+		p.CreateGroupPost(db, w, r)
+	}))
+
+
+	http.HandleFunc("/get-group-posts/", cor.WithCORS(func(w http.ResponseWriter, r *http.Request) {
+	groupID := strings.TrimPrefix(r.URL.Path, "/get-group-posts/")
+	g.GetGroupPosts(db, w, r, groupID)
+	}))
+
 
 	http.HandleFunc("/check-session", cor.WithCORS(func(w http.ResponseWriter, r *http.Request) {
 		userID, loggedIn := u.ValidateSession(db, r)
