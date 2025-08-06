@@ -55,6 +55,30 @@ func InsertPost(db *sql.DB, user_id int, title, content, imgOrgif string) (int64
 	return id, createdAt, err
 }
 
+// InsertGroupPost inserts a post within a specific group
+func InsertGroupPost(db *sql.DB, user_id, group_id int, title, content, imgOrgif string) (int64, time.Time, error) {
+	query := `INSERT INTO posts (user_id, title, content, imgOrgif, group_id) VALUES (?, ?, ?, ?, ?)`
+	result, err := db.Exec(query, user_id, title, content, imgOrgif, group_id)
+	if err != nil {
+		return -1, time.Time{}, err
+	}
+	// Retrieve the auto-generated ID
+	id, err := result.LastInsertId()
+	if err != nil {
+		return -1, time.Time{}, err // Return zero time and the error if ID retrieval fails
+	}
+
+	// Query the created_at timestamp for the newly inserted post
+	var createdAt time.Time
+	query = `SELECT created_at FROM posts WHERE id = ?`
+	err = db.QueryRow(query, id).Scan(&createdAt)
+	if err != nil {
+		return -1, time.Time{}, err // Return zero time and the error if timestamp retrieval fails
+	}
+
+	return id, createdAt, err
+}
+
 func InsertPostCategory(db *sql.DB, postID int, categoryID int) error {
 	query := `INSERT INTO post_categories (post_id, category_id) VALUES (?, ?)`
 	_, err := db.Exec(query, postID, categoryID)
