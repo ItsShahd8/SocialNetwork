@@ -81,6 +81,33 @@ func ConnectWeb(db *sql.DB) {
 		json.NewEncoder(w).Encode(map[string]bool{"success": true})
 	}))
 
+	http.HandleFunc("/api/follow/counts", cor.WithCORS(func(w http.ResponseWriter, r *http.Request) {
+		userID, ok := u.ValidateSession(db, r)
+		if !ok {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+
+		var followers, following int
+
+		// Count who follows you
+		err1 := db.QueryRow(`SELECT COUNT(*) FROM userFollow WHERE following_id = ?`, userID).Scan(&followers)
+
+		// Count who you're following
+		err2 := db.QueryRow(`SELECT COUNT(*) FROM userFollow WHERE follower_id = ?`, userID).Scan(&following)
+
+		if err1 != nil || err2 != nil {
+			http.Error(w, "Database error", http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]int{
+			"followers": followers,
+			"following": following,
+		})
+	}))
+
 	http.HandleFunc("/api/users/", cor.WithCORS(func(w http.ResponseWriter, r *http.Request) {
 		// Strip prefix to get "{suffix…}"
 		path := strings.TrimPrefix(r.URL.Path, "/api/users/")

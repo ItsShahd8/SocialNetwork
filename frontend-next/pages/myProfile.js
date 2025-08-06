@@ -17,6 +17,7 @@ export default function MyProfile() {
         <script src="/js/likes.js" defer></script>
         <script src="/js/comments.js" defer></script>
         <script src="/js/chat.js" defer></script>
+        <script src="/js/followCounts.js" defer></script>
       </Head>
 
       <section id="show">
