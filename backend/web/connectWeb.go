@@ -111,6 +111,15 @@ func ConnectWeb(db *sql.DB) {
 		}
 		p.CreatePost(db, w, r) //  This is the API to save posts
 	}))
+
+	// Group post creation
+	http.HandleFunc("/create-group-post", cor.WithCORS(func(w http.ResponseWriter, r *http.Request) {
+		if !isAuthenticated(db, r) {
+			http.Redirect(w, r, "/", http.StatusSeeOther)
+			return
+		}
+		p.CreateGroupPost(db, w, r) // API to save group posts
+	}))
 	// Add this after your /create-post handler
 	http.HandleFunc("/get-followers", cor.WithCORS(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
@@ -254,6 +263,12 @@ func ConnectWeb(db *sql.DB) {
 
 	http.HandleFunc("/get-group-invitations", cor.WithCORS(func(w http.ResponseWriter, r *http.Request) {
 		g.GetGroupInvitations(db, w, r)
+	}))
+
+	// Get group posts
+	http.HandleFunc("/group-posts/", cor.WithCORS(func(w http.ResponseWriter, r *http.Request) {
+		groupIDStr := strings.TrimPrefix(r.URL.Path, "/group-posts/")
+		g.GetGroupPosts(db, w, r, groupIDStr)
 	}))
 
 	http.HandleFunc("/check-session", cor.WithCORS(func(w http.ResponseWriter, r *http.Request) {

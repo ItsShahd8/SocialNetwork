@@ -287,3 +287,14 @@ func GetUserGroupInvitations(db *sql.DB, userID int) ([]map[string]interface{}, 
 
 	return invitations, nil
 }
+
+// IsUserGroupMember checks if a user is a member of a specific group
+func IsUserGroupMember(db *sql.DB, userID, groupID int) (bool, error) {
+	query := `SELECT COUNT(*) FROM group_members WHERE user_id = ? AND group_id = ? AND status = 'accepted'`
+	var count int
+	err := db.QueryRow(query, userID, groupID).Scan(&count)
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
+}

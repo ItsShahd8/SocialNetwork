@@ -418,3 +418,96 @@ func CheckUserCanSeePost(db *sql.DB, postID, viewerID int) (bool, error) {
 
     return false, nil
 }
+
+// GetGroupPosts retrieves all posts for a specific group
+func GetGroupPosts(db *sql.DB, groupID, userID int) ([]map[string]interface{}, error) {
+	// First check if user is a member of the group
+	isMember, err := IsUserGroupMember(db, userID, groupID)
+	if err != nil {
+		return nil, err
+	}
+	if !isMember {
+		return []map[string]interface{}{}, nil // Return empty array if not a member
+	}
+
+	query := `
+		SELECT 
+			p.id, p.title, p.content, p.imgOrgif, p.created_at, p.user_id, p.group_id,
+			u.firstname, u.lastname, u.username,
+			COALESCE(like_count, 0) as like_count,
+			COALESCE(dislike_count, 0) as dislike_count,
+			COALESCE(comment_count, 0) as comment_count,
+			COALESCE(user_like.is_like, -1) as user_reaction
+		FROM posts p
+		JOIN users u ON p.user_id = u.id
+		LEFT JOIN (
+			SELECT post_id, COUNT(*) as like_count
+			FROM likes
+			WHERE is_like = 1 AND comment_id = 0
+			GROUP BY post_id
+		) likes ON p.id = likes.post_id
+		LEFT JOIN (
+			SELECT post_id, COUNT(*) as dislike_count
+			FROM likes
+			WHERE is_like = 0 AND comment_id = 0
+			GROUP BY post_id
+		) dislikes ON p.id = dislikes.post_id
+		LEFT JOIN (
+			SELECT post_id, COUNT(*) as comment_count
+			FROM comments
+			GROUP BY post_id
+		) comments ON p.id = comments.post_id
+		LEFT JOIN (
+			SELECT post_id, is_like
+			FROM likes
+			WHERE user_id = ? AND comment_id = 0
+		) user_like ON p.id = user_like.post_id
+		WHERE p.group_id = ?
+		ORDER BY p.created_at DESC`
+
+	rows, err := db.Query(query, userID, groupID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var posts []map[string]interface{}
+	for rows.Next() {
+		var id, postUserID, postGroupID, likeCount, dislikeCount, commentCount, userReaction int
+		var title, content, imgOrGif, firstname, lastname, username string
+		var createdAt time.Time
+
+		err := rows.Scan(&id, &title, &content, &imgOrGif, &createdAt, &postUserID, &postGroupID,
+			&firstname, &lastname, &username, &likeCount, &dislikeCount, &commentCount, &userReaction)
+		if err != nil {
+			return nil, err
+		}
+
+		// Get categories for this post
+		categories, err := GetCategoriesByPostID(db, id)
+		if err != nil {
+			return nil, err
+		}
+
+		post := map[string]interface{}{
+			"id":            id,
+			"title":         title,
+			"content":       content,
+			"imgOrgif":      imgOrGif,
+			"created_at":    createdAt.Format("2006-01-02 15:04:05"),
+			"user_id":       postUserID,
+			"group_id":      postGroupID,
+			"firstname":     firstname,
+			"lastname":      lastname,
+			"username":      username,
+			"categories":    categories,
+			"like_count":    likeCount,
+			"dislike_count": dislikeCount,
+			"comment_count": commentCount,
+			"user_reaction": userReaction,
+		}
+		posts = append(posts, post)
+	}
+
+	return posts, nil
+}

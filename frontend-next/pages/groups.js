@@ -40,6 +40,7 @@ export default function Groups() {
             <a href="/groups" className="nav-link active">Groups</a>
             <a href="/myProfile" className="nav-link">Profile</a>
             <a href="/createPost" className="nav-link">Create Post</a>
+            <a href="/createGroupPost" className="nav-link">Group Post</a>
             <button id="logout-btn" className="nav-link logout-btn">Logout</button>
           </div>
         </div>

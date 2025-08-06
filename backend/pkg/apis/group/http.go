@@ -349,3 +349,36 @@ func GetGroupInvitations(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(invitations)
 }
+
+// GetGroupPosts returns all posts for a specific group
+func GetGroupPosts(db *sql.DB, w http.ResponseWriter, r *http.Request, groupIDStr string) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Validate session and get user ID
+	userID, loggedIn := u.ValidateSession(db, r)
+	if !loggedIn {
+		http.Error(w, "Unauthorized. Please log in.", http.StatusUnauthorized)
+		return
+	}
+
+	// Parse group ID
+	groupID, err := database.ParseID(groupIDStr)
+	if err != nil {
+		http.Error(w, "Invalid group ID", http.StatusBadRequest)
+		return
+	}
+
+	// Get posts for the group
+	posts, err := database.GetGroupPosts(db, groupID, userID)
+	if err != nil {
+		fmt.Println("Error retrieving group posts:", err)
+		http.Error(w, "Failed to retrieve group posts", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(posts)
+}
