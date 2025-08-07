@@ -2,12 +2,16 @@
 function initializeGroupsPage() {
     // Check session on page load
     checkSession();
+    //get the groups name from the id in the url
+    const urlParams = new URLSearchParams(window.location.search);
+    const groupId = urlParams.get('id');
+    setupGroupName(groupId);
     setupTabs();
     setupModal();
     setupGroupChat();
     setupGroupPosts();
     setupGroupEvents();
-    // Setup logout functionality
+    setupCreateEventForm()
     setupLogout();
 }
 
@@ -43,6 +47,28 @@ function checkSession() {
         .catch(error => {
             console.error('Session check failed:', error);
             window.location.href = '/login';
+        });
+}
+
+function setupGroupName(groupId) {
+    // Fetch group details using the groupId
+    fetch(`http://localhost:8080/group-details/${groupId}`, {
+        method: 'GET',
+        credentials: 'include'
+    })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Group details:', data);
+            
+            if (data.group) {
+                const groupName = data.group.title || 'Group';
+                document.querySelector('.groups-header h1').textContent = groupName;
+            } else {
+                console.error('Failed to fetch group details:', data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching group details:', error);
         });
 }
 
@@ -147,12 +173,12 @@ function setupCreateEventForm() {
                     document.getElementById('create-event-modal').style.display = 'none';
                     form.reset();
                 } else {
-                    alert('Error creating group: ' + data.message);
+                    alert('Error creating event: ' + data.message);
                 }
             })
             .catch(error => {
-                console.error('Error creating group:', error);
-                alert('Error creating group');
+                console.error('Error creating event:', error);
+                alert('Error creating event');
             });
     });
 }

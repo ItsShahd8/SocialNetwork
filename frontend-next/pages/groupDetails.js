@@ -49,7 +49,7 @@ export default function GroupDetails() {
         <div className="groups-header">
           {/* //todo: change the title to groups title */}
           <h1>Group</h1>
-          <button id="create-btn" className="btn btn-primary">Create</button>
+          <button id="create-btn" className="btn btn-primary">Create Post</button>
         </div>
 
         {/* Create Event Modal */}
