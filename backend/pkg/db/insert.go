@@ -157,7 +157,6 @@ func InsertGroupInvitation(db *sql.DB, groupID, inviterID, inviteeID int) error 
 	_, err := db.Exec(query, groupID, inviterID, inviteeID)
 	return err
 }
-<<<<<<< HEAD
 // InsertPostWithPrivacy creates a new post with privacy level
 func InsertPostWithPrivacy(db *sql.DB, userID int, title, content, imgOrGif string, privacyLevel int) (int64, string, error) {
     query := `INSERT INTO posts (user_id, title, content, imgOrGif, privacy_level) VALUES (?, ?, ?, ?, ?)`
@@ -213,5 +212,3 @@ func AddPostPermissions(db *sql.DB, postID int, userIDs []int) error {
 }
 
 
-=======
->>>>>>> 8654ed1c7061960e08f915b7fdd2b9d1273c30a2

@@ -6,16 +6,12 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"net/http"
-	"strconv"
 	"strings"
-	"time"
 	"time"
 
 	cor "socialnetwork/pkg/apis"
 	"socialnetwork/pkg/apis/chat"
 	e "socialnetwork/pkg/apis/error"
-	g "socialnetwork/pkg/apis/group"
 	g "socialnetwork/pkg/apis/group"
 	"socialnetwork/pkg/apis/like"
 	likerepo "socialnetwork/pkg/apis/like/repo"
@@ -314,7 +310,6 @@ func ConnectWeb(db *sql.DB) {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(response)
 	}))
-
 
 	// likes
 	likesRepo := likerepo.NewLikesRepository(db)
