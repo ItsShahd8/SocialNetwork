@@ -5,6 +5,8 @@ function initializeGroupsPage() {
     setupTabs();
     setupModal();
     setupGroupChat();
+    setupGroupPosts();
+    setupGroupEvents();
     // Setup logout functionality
     setupLogout();
 }
@@ -66,7 +68,7 @@ function setupTabs() {
 
 function setupModal() {
     const modal = document.getElementById('create-event-modal');
-    const createBtn = document.getElementById('create-event-btn');
+    const createBtn = document.getElementById('create-btn');
     const closeBtn = document.querySelector('.close');
     const cancelBtn = document.getElementById('cancel-create');
 
@@ -74,10 +76,15 @@ function setupModal() {
 
     if (createBtn) {
         createBtn.addEventListener('click', () => {
-            console.log('Create event button clicked');
-            if (modal) {
-                modal.style.display = 'block';
+            console.log('Create button clicked');
+            if (createBtn.innerHTML === 'Create Event') {
+                if (modal) {
+                    modal.style.display = 'block';
+                }
+            } else if (createBtn.innerHTML === 'Create Post') {
+                //todo: open or go to create post
             }
+
         });
     }
 
@@ -166,18 +173,55 @@ function loadUserGroups() {
 
 function setupGroupChat() {
     const tabButtons = document.querySelectorAll('.tab-button');
+    const createBtn = document.getElementById('create-btn');
     const chatMain = document.getElementById('chat-main');
 
     tabButtons.forEach(button => {
         button.addEventListener('click', () => {
             const targetTab = button.getAttribute('data-tab');
             // Show chat section only if "chat" tab is selected
-            chatMain.style.display = (targetTab === 'chat') ? 'block' : 'none';
+            if (targetTab === 'chat') {
+                createBtn.style.display = 'none';
+                chatMain.style.display = 'block';
+            } else {
+                createBtn.style.display = 'block';
+                chatMain.style.display = 'none';
+            }
         });
     });
 
     //todo: get all users in the group and display them in the chat section
     //todo: implement real-time chat functionality
+}
+
+function setupGroupPosts() {
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const createBtn = document.getElementById('create-btn');
+
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const targetTab = button.getAttribute('data-tab');
+            // Show chat section only if "chat" tab is selected
+            if (targetTab === 'all-posts') {
+                createBtn.innerHTML = 'Create Post';
+            }
+        });
+    });
+}
+
+function setupGroupEvents() {
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const createBtn = document.getElementById('create-btn');
+
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const targetTab = button.getAttribute('data-tab');
+            // Show chat section only if "chat" tab is selected
+            if (targetTab === 'events') {
+                createBtn.innerHTML = 'Create Event';
+            }
+        });
+    });
 }
 
 // Logout functionality

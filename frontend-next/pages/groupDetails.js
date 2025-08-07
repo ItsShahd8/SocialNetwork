@@ -49,15 +49,15 @@ export default function GroupDetails() {
         <div className="groups-header">
           {/* //todo: change the title to groups title */}
           <h1>Group</h1>
-          <button id="create-event-btn" className="btn btn-primary">Create Event</button>
+          <button id="create-btn" className="btn btn-primary">Create</button>
         </div>
 
-        {/* Create Group Modal */}
+        {/* Create Event Modal */}
         <div id="create-event-modal" className="modal" style={{ display: 'none' }}>
           <div className="modal-content">
             <span className="close">&times;</span>
             <h2>Create New Event</h2>
-            {/* //todo: do the even creation here */}
+            {/* //todo: do the event creation here */}
             <form id="create-event-form">
               <div className="form-group">
                 <label htmlFor="event-title">Event Title:</label>
@@ -68,7 +68,7 @@ export default function GroupDetails() {
                 <textarea id="event-description" name="description" rows="4" required></textarea>
               </div>
               <div className="form-group">
-                {/* //todo: change the options + add fields for date/time */}
+                {/* //todo: add options (going / not going) + add fields for date/time */}
                 <button type="submit" className="btn btn-primary">Create Event</button>
                 <button type="button" className="btn btn-secondary" id="cancel-create">Cancel</button>
               </div>
@@ -109,7 +109,7 @@ export default function GroupDetails() {
         {/*Group Chat */}
         <section className="chat-main" id="chat-main">
 
-         
+
 
           <div id="chatWindow" className="chat-window">
           </div>
