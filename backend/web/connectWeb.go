@@ -6,12 +6,16 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"net/http"
+	"strconv"
 	"strings"
+	"time"
 	"time"
 
 	cor "socialnetwork/pkg/apis"
 	"socialnetwork/pkg/apis/chat"
 	e "socialnetwork/pkg/apis/error"
+	g "socialnetwork/pkg/apis/group"
 	g "socialnetwork/pkg/apis/group"
 	"socialnetwork/pkg/apis/like"
 	likerepo "socialnetwork/pkg/apis/like/repo"
@@ -35,6 +39,151 @@ func ConnectWeb(db *sql.DB) {
 	// 	fmt.Println("Error clearing tables:", err)
 	// 	return
 	// }
+
+	// Simple follow/unfollow endpoint:
+	//   POST   /api/follow?targetId=123   → follow user 123
+	//   DELETE /api/follow?targetId=123   → unfollow user 123
+	http.HandleFunc("/api/follow", cor.WithCORS(func(w http.ResponseWriter, r *http.Request) {
+		// 1) Authentication
+		userID, ok := u.ValidateSession(db, r)
+		if !ok {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+
+		// 2) Parse targetId from query
+		q := r.URL.Query().Get("targetId")
+		targetID, err := strconv.Atoi(q)
+		if err != nil || targetID <= 0 {
+			http.Error(w, "Invalid targetId", http.StatusBadRequest)
+			return
+		}
+
+		// 3) Perform follow or unfollow
+		switch r.Method {
+		case http.MethodPost:
+			_, err = db.Exec(
+				`INSERT OR IGNORE INTO userFollow(follower_id, following_id) VALUES (?, ?)`,
+				userID, targetID,
+			)
+		case http.MethodDelete:
+			_, err = db.Exec(
+				`DELETE FROM userFollow WHERE follower_id = ? AND following_id = ?`,
+				userID, targetID,
+			)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		if err != nil {
+			http.Error(w, "Database error", http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]bool{"success": true})
+	}))
+
+	http.HandleFunc("/api/follow/counts", cor.WithCORS(func(w http.ResponseWriter, r *http.Request) {
+		userID, ok := u.ValidateSession(db, r)
+		if !ok {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+
+		var followers, following int
+
+		// Count who follows you
+		err1 := db.QueryRow(`SELECT COUNT(*) FROM userFollow WHERE following_id = ?`, userID).Scan(&followers)
+
+		// Count who you're following
+		err2 := db.QueryRow(`SELECT COUNT(*) FROM userFollow WHERE follower_id = ?`, userID).Scan(&following)
+
+		if err1 != nil || err2 != nil {
+			http.Error(w, "Database error", http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]int{
+			"followers": followers,
+			"following": following,
+		})
+	}))
+
+	http.HandleFunc("/api/users/", cor.WithCORS(func(w http.ResponseWriter, r *http.Request) {
+		// Strip prefix to get "{suffix…}"
+		path := strings.TrimPrefix(r.URL.Path, "/api/users/")
+
+		// 1) GET /api/users/{id}/isFollowing
+		if strings.HasSuffix(path, "/isFollowing") && r.Method == http.MethodGet {
+			userID, ok := u.ValidateSession(db, r)
+			if !ok {
+				http.Error(w, "Unauthorized", http.StatusUnauthorized)
+				return
+			}
+			idStr := strings.TrimSuffix(path, "/isFollowing")
+			targetID, err := strconv.Atoi(idStr)
+			if err != nil {
+				http.Error(w, "Invalid user ID", http.StatusBadRequest)
+				return
+			}
+			var exists bool
+			err = db.QueryRow(
+				`SELECT COUNT(*)>0 FROM userFollow WHERE follower_id=? AND following_id=?`,
+				userID, targetID,
+			).Scan(&exists)
+			if err != nil {
+				http.Error(w, "Database error", http.StatusInternalServerError)
+				return
+			}
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(map[string]bool{"isFollowing": exists})
+			return
+		}
+
+		// 2) POST/DELETE /api/users/{id}/follow
+		if strings.HasSuffix(path, "/follow") {
+			userID, ok := u.ValidateSession(db, r)
+			if !ok {
+				http.Error(w, "Unauthorized", http.StatusUnauthorized)
+				return
+			}
+			idStr := strings.TrimSuffix(path, "/follow")
+			targetID, err := strconv.Atoi(idStr)
+			if err != nil {
+				http.Error(w, "Invalid user ID", http.StatusBadRequest)
+				return
+			}
+
+			switch r.Method {
+			case http.MethodPost:
+				_, err = db.Exec(
+					`INSERT OR IGNORE INTO userFollow(follower_id, following_id) VALUES (?, ?)`,
+					userID, targetID,
+				)
+			case http.MethodDelete:
+				_, err = db.Exec(
+					`DELETE FROM userFollow WHERE follower_id = ? AND following_id = ?`,
+					userID, targetID,
+				)
+			default:
+				http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+				return
+			}
+			if err != nil {
+				http.Error(w, "Database error", http.StatusInternalServerError)
+				return
+			}
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(map[string]bool{"success": true})
+			return
+		}
+
+		// 3) Anything else under /api/users/ → 404
+		http.NotFound(w, r)
+	}))
 
 	http.HandleFunc("/signup", cor.WithCORS(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodPost {
@@ -69,39 +218,64 @@ func ConnectWeb(db *sql.DB) {
 	}))
 
 	http.HandleFunc("/get-otherPosts/", cor.WithCORS(func(w http.ResponseWriter, r *http.Request) {
+
 		_, loggedIn := u.ValidateSession(db, r)
 		if !loggedIn {
 			http.Error(w, "Unauthorized. Please log in.", http.StatusUnauthorized)
 			return
 		}
 
+		// 2) Extract username from URL
 		username := strings.TrimPrefix(r.URL.Path, "/get-otherPosts/")
-		fmt.Println(username)
 
+		// 3) Verify user exists and get their ID
 		uid, err := database.GetUserID(db, username)
 		if err != nil || uid == 0 {
 			e.ErrorHandler(w, r, 404)
 			return
 		}
-		fmt.Println("User ID:", uid)
+
+		// 4) Fetch posts
 		posts, err := database.GetPostsByUserID(db, uid)
 		if err != nil {
 			e.ErrorHandler(w, r, 500)
 			return
 		}
-		profile, err := u.GetOtherProfile(db, username)
+
+		// 5) Fetch profile fields + follower/following counts
+		var (
+			id             int
+			bio            string
+			followerCount  int
+			followingCount int
+		)
+		err = db.QueryRow(`
+        SELECT u.id, u.bio,
+           (SELECT COUNT(*) FROM userFollow WHERE following_id = u.id),
+           (SELECT COUNT(*) FROM userFollow WHERE follower_id  = u.id)
+        FROM users u
+        WHERE u.username = ?
+    `, username).Scan(&id, &bio, &followerCount, &followingCount)
 		if err != nil {
-			http.Error(w, "Profile not found", http.StatusNotFound)
+			http.Error(w, "Profile lookup error", http.StatusInternalServerError)
 			return
 		}
 
-		response := map[string]interface{}{
-			"profile": profile,
-			"posts":   posts,
+		// 6) Build the profile object
+		profileObj := map[string]interface{}{
+			"id":             id,
+			"username":       username,
+			"bio":            bio,
+			"followerCount":  followerCount,
+			"followingCount": followingCount,
 		}
 
+		// 7) Encode the full response
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(response)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"profile": profileObj,
+			"posts":   posts,
+		})
 	}))
 
 	http.HandleFunc("/create-post", cor.WithCORS(func(w http.ResponseWriter, r *http.Request) {

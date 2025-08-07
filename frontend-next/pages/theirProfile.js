@@ -1,35 +1,77 @@
-import Head from 'next/head';
+import Head from 'next/head'
+import Script from 'next/script'
+import { useEffect, useState } from 'react'
 
-export default function TheirProfile() {
+// Fetch profile data and follow state on each request using dynamic route param
+export async function getServerSideProps({ query, req }) {
+  const { user } = query
+  const cookie = req.headers.cookie || ''
+
+  // 1) Fetch profile and counts from Go backend
+  const profileRes = await fetch(
+    `http://localhost:8080/get-otherPosts/${encodeURIComponent(user)}`,
+    { headers: { cookie } }
+  )
+  if (!profileRes.ok) return { notFound: true }
+  const { profile } = await profileRes.json()
+
+  // 2) Check if the current user already follows this profile
+  let isFollowing = false
+  try {
+    const followRes = await fetch(
+      `http://localhost:8080/api/users/${profile.id}/isFollowing`,
+      { headers: { cookie } }
+    )
+    if (followRes.ok) {
+      const json = await followRes.json()
+      isFollowing = json.isFollowing
+    }
+  } catch (err) {
+    console.error('Error fetching follow state:', err)
+  }
+
+  return {
+    props: { profile, isFollowing }
+  }
+}
+
+export default function TheirProfile({ profile, isFollowing: initialFollow }) {
+  const [isFollowing, setIsFollowing] = useState(initialFollow)
+
+  // Push attributes and update button text on mount and state change
+  useEffect(() => {
+    const btn = document.getElementById('followButton')
+    if (!btn) return
+    btn.dataset.profileId  = profile.id
+    btn.dataset.following  = String(isFollowing)
+    btn.textContent = isFollowing ? 'Unfollow' : 'Follow'
+  }, [profile.id, isFollowing])
 
   return (
 
     <>
       <Head>
-        <title>Welcome Page</title>
+        <title>{profile.username} –  Profile</title>
         <meta charSet="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <link rel="stylesheet" href="/css/style.css" />
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
         <script src="/js/session.js" defer></script>
-        <script src="/js/posts.js" defer></script>
         <script src="/js/socket.js" defer></script>
+        <script src="/js/posts.js" defer></script>
         <script src="/js/likes.js" defer></script>
         <script src="/js/comments.js" defer></script>
         <script src="/js/chat.js" defer></script>
 
       </Head>
 
-      <section id="show">
+      <section id="show" hidden>
 
         <div className="sidebar-post right-sidebar">
           <br />
           <button id="logoutButton" className="button-side">Logout</button>
           <br />
-          <button className="button-side" onClick={() => window.history.back()}>Return</button>
-          <br />
           <button onClick={() => window.location.href = '/'} className="button-side">Main</button><br />
-          <br />
           <ul id="userList"></ul>
         </div>
 
@@ -50,37 +92,39 @@ export default function TheirProfile() {
 
         </section>
       </section>
-      <section id="theirProfilePageSection">
 
+      <section id="theirProfilePageSection">
+        <button
+          className="return-button"
+          onClick={() => window.location.href = '/posts'}
+        >
+          Return
+        </button>
 
         <div className="container-main">
           <div className="profile-top">
-            <img
-              src="/img/avatars/images.png"
-              alt="Avatar"
-              className="avatar-preview"
-              id='avatar'
-            />
+            <img src="/css/logo.png" alt="Logo" />
             <div className="follow">
-              <p id="profileUsername">Unknown</p>
+              <p id="profileUsername">Username</p>
               <p>Followers: <span id="userFollowers">0</span></p>
               <p>Following: <span id="userFollowing">0</span></p>
             </div>
           </div>
 
-          <button id="followButton" className="button-main">Follow</button>
+        <button id="followButton" data-profile-id="${profile.id}" data-following="${isFollowing}" className="button-main">
+          ${isFollowing ? 'Unfollow' : 'Follow'}
+        </button>
 
-          <div>
-            <p id="profileBio" className="bio"></p>
-          </div>
-
-          <section id="postPageSection">
-            <div className="container-theirProfilePost">
-              <div id="postsContainer"></div>
-            </div>
-          </section>
+        <div>
+          <p className="bio">${profile.bio}</p>
         </div>
-      </section>
+
+        <section id="postPageSection">
+          <div className="container-theirProfilePost">
+          </div>
+        </section>
+      </div>
+    </section>
     </>
-  );
+  )
 }

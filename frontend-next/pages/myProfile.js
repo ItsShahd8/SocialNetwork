@@ -17,6 +17,7 @@ export default function MyProfile() {
         <script src="/js/likes.js" defer></script>
         <script src="/js/comments.js" defer></script>
         <script src="/js/chat.js" defer></script>
+        <script src="/js/followCounts.js" defer></script>
       </Head>
 
       <section id="show">
@@ -75,7 +76,6 @@ export default function MyProfile() {
           <section id="postPageSection">
             <button className="button-create" onClick={() => window.location.href = '/createPost'}>Create Post</button>
             <div className="container-profilePost">
-              <div id="postsContainer"></div>
             </div>
           </section>
         </div>

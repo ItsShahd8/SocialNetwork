@@ -32,8 +32,9 @@ function checkSession() {
                     if (logInButton) logInButton.hidden = true;
                 }
                 if(show) show.hidden = false;
-                if (postsButton) postsButton.style.hidden = false;
-                if (logoutButton) {logoutButton.style.hidden = false;
+                if (postsButton) postsButton.style.display = "inline-block";
+                if (groupsButton) groupsButton.style.display = "inline-block";
+                if (logoutButton) {logoutButton.style.display = "inline-block";
                     logoutButton.addEventListener('click', logout);
                 }
 

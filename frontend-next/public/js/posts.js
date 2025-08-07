@@ -372,6 +372,8 @@ function loadTheirProfile(username, myUsername) {
         })
         .catch(error => console.log(error));
 
+
+
 }
 
 function toggleDropdown(id) {
@@ -406,7 +408,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        if (path === '/theirProfile') {
+        if (path.includes( '/theirProfile')) {
             const params = new URLSearchParams(window.location.search);
             const theirUsername = params.get('user');
             console.log("Username from URL:", theirUsername);

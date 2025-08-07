@@ -226,3 +226,4 @@ func GetOtherProfile(db *sql.DB, username string) (UserProfile, error) {
 
 	return profile, nil
 }
+
