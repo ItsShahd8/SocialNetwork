@@ -33,6 +33,14 @@ func GetComments(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// user must be logged in to view comments
+	viewerID, loggedIn := u.ValidateSession(db, r)
+	if !loggedIn {
+		w.Header().Set("Content-Type", "application/json")
+		http.Error(w, `{"error": "Unauthorized"}`, http.StatusUnauthorized)
+		return
+	}
+
 	postIDStr := r.URL.Query().Get("post_id")
 	postID, err := strconv.Atoi(postIDStr)
 	if err != nil || postID <= 0 {
@@ -40,6 +48,17 @@ func GetComments(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		http.Error(w, `{"error": "Invalid post ID"}`, http.StatusBadRequest)
 		return
+	}
+
+	// if this is a group post, ensure viewer is a member
+	groupID, err := database.GetGroupIDByPostID(db, postID)
+	if err == nil && groupID != 0 {
+		isMember, err := database.IsGroupMember(db, groupID, viewerID)
+		if err != nil || !isMember {
+			w.Header().Set("Content-Type", "application/json")
+			http.Error(w, `{"error": "Forbidden"}`, http.StatusForbidden)
+			return
+		}
 	}
 
 	comments, err := GetCommentsByPostID(db, postID)

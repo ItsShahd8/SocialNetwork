@@ -160,6 +160,53 @@ func IsGroupMember(db *sql.DB, groupID, userID int) (bool, error) {
 	return count > 0, nil
 }
 
+// GetGroupIDByPostID returns the group_id for a given post (0 if not a group post)
+func GetGroupIDByPostID(db *sql.DB, postID int) (int, error) {
+	query := `SELECT COALESCE(group_id, 0) FROM posts WHERE id = ?`
+	var groupID int
+	if err := db.QueryRow(query, postID).Scan(&groupID); err != nil {
+		return 0, err
+	}
+	return groupID, nil
+}
+
+// GetPostsByGroupIDForMember lists posts for a given group. Caller must ensure membership already.
+func GetPostsByGroupIDForMember(db *sql.DB, groupID int) ([]map[string]interface{}, error) {
+	query := `
+		SELECT p.id, u.username, p.title, p.content, COALESCE(p.imgOrgif, ''), p.created_at
+		FROM posts p
+		JOIN users u ON p.user_id = u.id
+		WHERE p.group_id = ?
+		ORDER BY p.created_at DESC`
+	rows, err := db.Query(query, groupID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var posts []map[string]interface{}
+	for rows.Next() {
+		var postID int
+		var username, title, content, img string
+		var createdAt time.Time
+		if err := rows.Scan(&postID, &username, &title, &content, &img, &createdAt); err != nil {
+			return nil, err
+		}
+		categories, _ := GetCategoriesByPostID(db, postID)
+		post := map[string]interface{}{
+			"id":         postID,
+			"username":   username,
+			"title":      title,
+			"content":    content,
+			"imgOrgif":   img,
+			"categories": categories,
+			"createdAt":  createdAt.Format("2006-01-02 15:04:05"),
+		}
+		posts = append(posts, post)
+	}
+	return posts, nil
+}
+
 // GetGroupMemberStatus returns the membership status of a user in a group
 func GetGroupMemberStatus(db *sql.DB, groupID, userID int) (string, error) {
 	query := `SELECT status FROM group_members WHERE group_id = ? AND user_id = ?`

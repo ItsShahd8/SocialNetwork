@@ -8,6 +8,7 @@ import (
 
 	u "socialnetwork/pkg/apis/user"
 	database "socialnetwork/pkg/db"
+	"strconv"
 )
 
 // CreateGroup handles group creation
@@ -134,6 +135,149 @@ func GetGroupDetails(db *sql.DB, w http.ResponseWriter, r *http.Request, groupID
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
+}
+
+// CreateGroupPost allows members to create a post inside a group
+func CreateGroupPost(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	userID, loggedIn := u.ValidateSession(db, r)
+	if !loggedIn {
+		http.Error(w, "Unauthorized. Please log in.", http.StatusUnauthorized)
+		return
+	}
+
+	var body struct {
+		GroupID    int      `json:"group_id"`
+		Title      string   `json:"title"`
+		Content    string   `json:"content"`
+		Categories []string `json:"categories"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		http.Error(w, "Failed to parse JSON", http.StatusBadRequest)
+		return
+	}
+	if body.Title == "" || body.Content == "" || body.GroupID == 0 {
+		http.Error(w, "Missing required fields", http.StatusBadRequest)
+		return
+	}
+
+	// ensure user is a member
+	isMember, err := database.IsGroupMember(db, body.GroupID, userID)
+	if err != nil || !isMember {
+		http.Error(w, "You are not a member of this group", http.StatusForbidden)
+		return
+	}
+
+	// create post with privacy public, but scoped to group via group_id
+	postID, createdAt, err := database.InsertPostWithGroup(db, userID, body.Title, body.Content, "", body.GroupID)
+	if err != nil {
+		fmt.Println("Error inserting group post:", err)
+		http.Error(w, "Failed to create post", http.StatusInternalServerError)
+		return
+	}
+
+	// attach categories
+	for _, catName := range body.Categories {
+		if catName == "" {
+			continue
+		}
+		catID, err := database.GetCategoryID(db, catName)
+		if err != nil {
+			fmt.Println("GetCategoryID error:", err)
+			continue
+		}
+		_ = database.InsertPostCategory(db, int(postID), catID)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"success":   true,
+		"postID":    postID,
+		"createdAt": createdAt,
+	})
+}
+
+// GetGroupPosts returns posts only for members of the group
+func GetGroupPosts(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	userID, loggedIn := u.ValidateSession(db, r)
+	if !loggedIn {
+		http.Error(w, "Unauthorized. Please log in.", http.StatusUnauthorized)
+		return
+	}
+
+	groupIDStr := r.URL.Query().Get("group_id")
+	groupID, err := strconv.Atoi(groupIDStr)
+	if err != nil || groupID == 0 {
+		http.Error(w, "Invalid group id", http.StatusBadRequest)
+		return
+	}
+	isMember, err := database.IsGroupMember(db, groupID, userID)
+	if err != nil || !isMember {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+
+	posts, err := database.GetPostsByGroupIDForMember(db, groupID)
+	if err != nil {
+		fmt.Println("GetPostsByGroupIDForMember error:", err)
+		http.Error(w, "Failed to get posts", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(posts)
+}
+
+// CreateGroupComment allows members to comment on group posts
+func CreateGroupComment(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	userID, loggedIn := u.ValidateSession(db, r)
+	if !loggedIn {
+		http.Error(w, "Unauthorized. Please log in.", http.StatusUnauthorized)
+		return
+	}
+	var body struct {
+		PostID  int    `json:"post_id"`
+		Content string `json:"content"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		http.Error(w, "Failed to parse JSON", http.StatusBadRequest)
+		return
+	}
+	if body.PostID == 0 || body.Content == "" {
+		http.Error(w, "Missing fields", http.StatusBadRequest)
+		return
+	}
+	// ensure post belongs to group and user is member of that group
+	groupID, err := database.GetGroupIDByPostID(db, body.PostID)
+	if err != nil || groupID == 0 {
+		http.Error(w, "Post not found", http.StatusNotFound)
+		return
+	}
+	isMember, err := database.IsGroupMember(db, groupID, userID)
+	if err != nil || !isMember {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+	_, _, err = database.InsertComment(db, body.PostID, userID, body.Content, "")
+	if err != nil {
+		http.Error(w, "Failed to create comment", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]any{"success": true})
 }
 
 // InviteUserToGroup handles group invitations

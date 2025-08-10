@@ -425,6 +425,17 @@ func ConnectWeb(db *sql.DB) {
 		g.GetGroupInvitations(db, w, r)
 	}))
 
+	// Group posts and comments
+	http.HandleFunc("/group/create-post", cor.WithCORS(func(w http.ResponseWriter, r *http.Request) {
+		g.CreateGroupPost(db, w, r)
+	}))
+	http.HandleFunc("/group/posts", cor.WithCORS(func(w http.ResponseWriter, r *http.Request) {
+		g.GetGroupPosts(db, w, r)
+	}))
+	http.HandleFunc("/group/create-comment", cor.WithCORS(func(w http.ResponseWriter, r *http.Request) {
+		g.CreateGroupComment(db, w, r)
+	}))
+
 	http.HandleFunc("/check-session", cor.WithCORS(func(w http.ResponseWriter, r *http.Request) {
 		userID, loggedIn := u.ValidateSession(db, r)
 		username, _ := database.GetUsernameUsingID(db, userID)

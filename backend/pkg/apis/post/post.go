@@ -51,10 +51,13 @@ func GetPosts(db *sql.DB, w http.ResponseWriter, r *http.Request) {
             GROUP BY post_id
         ) dislikes ON p.id = dislikes.post_id
         WHERE 
-            COALESCE(p.privacy_level, 0) = 0 OR  -- PUBLIC posts (everyone can see)
-            p.user_id = ? OR                     -- user's own posts
-            (COALESCE(p.privacy_level, 0) = 1 AND f.follower_id IS NOT NULL) OR  -- ALMOST PRIVATE + user is follower
-            (COALESCE(p.privacy_level, 0) = 2 AND pp.user_id IS NOT NULL)        -- PRIVATE + user has permission
+            (
+                COALESCE(p.privacy_level, 0) = 0 OR  -- PUBLIC posts (everyone can see)
+                p.user_id = ? OR                     -- user's own posts
+                (COALESCE(p.privacy_level, 0) = 1 AND f.follower_id IS NOT NULL) OR  -- ALMOST PRIVATE + user is follower
+                (COALESCE(p.privacy_level, 0) = 2 AND pp.user_id IS NOT NULL)        -- PRIVATE + user has permission
+            )
+            AND p.group_id IS NULL
         ORDER BY p.created_at DESC
     `
 
