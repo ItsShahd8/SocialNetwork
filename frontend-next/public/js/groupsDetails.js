@@ -223,15 +223,113 @@ function setupGroupChat() {
 function setupGroupPosts() {
     const tabButtons = document.querySelectorAll('.tab-button');
     const createBtn = document.getElementById('create-btn');
+    const postsList = document.getElementById('posts-list');
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const groupId = parseInt(urlParams.get('id'));
+
+    async function loadPosts() {
+        try {
+            const res = await fetch(`http://localhost:8080/group/posts?group_id=${groupId}`, { credentials: 'include' });
+            if (!res.ok) throw new Error('failed to load posts');
+            const posts = await res.json();
+            postsList.innerHTML = '';
+            if (!posts || posts.length === 0) {
+                postsList.innerHTML = '<p>No posts yet.</p>';
+                return;
+            }
+            posts.forEach(post => {
+                const el = document.createElement('div');
+                el.className = 'post-card';
+                const imageHtml = post.imgOrgif ? `<img src="${post.imgOrgif}" alt="Post Image" class="post-image"/>` : '';
+                el.innerHTML = `
+                    <div class="comment-post">
+                        <h2>${post.title}</h2>
+                        <p>${post.content}</p>
+                        ${imageHtml}
+                        <small>By <strong>${post.username}</strong> on ${post.createdAt}</small>
+                        <div class="post-actions">
+                            <button class="btn btn-secondary comment-toggle" data-post-id="${post.id}">Comment</button>
+                        </div>
+                        <div class="comment-form" id="comment-form-${post.id}" style="display:none; margin-top:8px;">
+                            <input type="text" class="comment-input" id="comment-input-${post.id}" placeholder="Write a comment..." />
+                            <button class="btn btn-primary" data-post-id="${post.id}">Send</button>
+                        </div>
+                    </div>
+                `;
+                postsList.appendChild(el);
+            });
+
+            // wire comment buttons
+            postsList.querySelectorAll('.comment-toggle').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const pid = btn.dataset.postId;
+                    const frm = document.getElementById(`comment-form-${pid}`);
+                    frm.style.display = frm.style.display === 'none' ? 'block' : 'none';
+                });
+            });
+            postsList.querySelectorAll('.comment-form .btn.btn-primary').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const pid = parseInt(btn.getAttribute('data-post-id'));
+                    const input = document.getElementById(`comment-input-${pid}`);
+                    const content = input.value.trim();
+                    if (!content) { alert('Please write a comment'); return; }
+                    const res = await fetch('http://localhost:8080/group/create-comment', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify({ post_id: pid, content })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        input.value = '';
+                        alert('Comment posted');
+                    } else {
+                        alert(data.message || 'Failed to create comment');
+                    }
+                });
+            });
+        } catch (e) {
+            console.error(e);
+            postsList.innerHTML = '<p>Error loading posts.</p>';
+        }
+    }
+
+    // initial load
+    loadPosts();
 
     tabButtons.forEach(button => {
         button.addEventListener('click', () => {
             const targetTab = button.getAttribute('data-tab');
-            // Show chat section only if "chat" tab is selected
             if (targetTab === 'all-posts') {
                 createBtn.innerHTML = 'Create Post';
             }
         });
+    });
+
+    // clicking create opens inline modal to create a post
+    createBtn.addEventListener('click', async () => {
+        if (createBtn.innerHTML !== 'Create Post') return;
+        const title = prompt('Title');
+        if (!title) return;
+        const content = prompt('Content');
+        if (!content) return;
+        const categoriesInput = prompt('Categories (comma separated)');
+        const categories = categoriesInput ? categoriesInput.split(',').map(s => s.trim()).filter(Boolean) : [];
+
+        const res = await fetch('http://localhost:8080/group/create-post', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ group_id: groupId, title, content, categories })
+        });
+        const data = await res.json();
+        if (data.success) {
+            alert('Post created successfully!');
+            loadPosts();
+        } else {
+            alert('Failed to create post');
+        }
     });
 }
 

@@ -211,4 +211,23 @@ func AddPostPermissions(db *sql.DB, postID int, userIDs []int) error {
     return nil
 }
 
+// InsertPostWithGroup creates a new post inside a group (no privacy filtering; visibility controlled by membership)
+func InsertPostWithGroup(db *sql.DB, userID int, title, content, imgOrgif string, groupID int) (int64, string, error) {
+	query := `INSERT INTO posts (user_id, title, content, imgOrgif, group_id) VALUES (?, ?, ?, ?, ?)`
+	result, err := db.Exec(query, userID, title, content, imgOrgif, groupID)
+	if err != nil {
+		return -1, "", err
+	}
+	id, err := result.LastInsertId()
+	if err != nil {
+		return -1, "", err
+	}
+	var createdAt time.Time
+	err = db.QueryRow(`SELECT created_at FROM posts WHERE id = ?`, id).Scan(&createdAt)
+	if err != nil {
+		return id, time.Now().Format("2006-01-02 15:04:05"), nil
+	}
+	return id, createdAt.Format("2006-01-02 15:04:05"), nil
+}
+
 
